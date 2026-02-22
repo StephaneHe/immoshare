@@ -1,0 +1,23 @@
+{
+  "name": "immo-share",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "pnpm --filter @immo-share/api test",
+    "test:watch": "pnpm --filter @immo-share/api test:watch",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ]
+  }
+}
