@@ -6,11 +6,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Modules completed | 4 / 9 |
-| Total tests | 207 |
-| Total endpoints | 36 |
-| Total DB tables | 9 |
-| Git commits | 6 |
+| Modules completed | 5 / 9 |
+| Total tests | 257 |
+| Total endpoints | 47 |
+| Total DB tables | 12 |
+| Git commits | 7 |
 
 ## Module Status
 
@@ -19,8 +19,8 @@
 | M1 | Auth | ✅ Done | 42 | 34 | 76 | 8 | 4 | `f4056b1` |
 | M2 | Agencies | ✅ Done | 34 | 18 | 52 | 14 | 2 | `5f9df19` |
 | M3 | Properties | ✅ Done | 22 | 16 | 38 | 8 | 2 | `8543fca` |
-| M4 | Pages | ✅ Done | 29 | 12 | 41 | 6 | 1 | pending |
-| M5 | Sharing | ⬜ Not started | — | — | — | — | — | — |
+| M4 | Pages | ✅ Done | 29 | 12 | 41 | 6 | 1 | `e7b9e9a` |
+| M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | pending |
 | M6 | Tracking | ⬜ Not started | — | — | — | — | — | — |
 | M7 | Partners | ⬜ Not started | — | — | — | — | — | — |
 | M8 | Notifications | ⬜ Not started | — | — | — | — | — | — |
@@ -33,8 +33,8 @@ M1 Auth ✅
 ├── M2 Agencies ✅
 │   └── M3 Properties ✅
 │       └── M4 Pages ✅
-│           └── M5 Sharing ← NEXT
-│               └── M6 Tracking
+│           └── M5 Sharing ✅
+│               └── M6 Tracking ← NEXT
 │                   └── M8 Notifications
 ├── M9 Branding
 └── M7 Partners (depends on M1, M2, M3)
@@ -45,82 +45,63 @@ M1 Auth ✅
 ### 2026-02-22 — Day 1
 
 #### M1 — Auth (commit `f4056b1`)
-
-**Scope:** User registration, login, JWT (access + refresh tokens), email verification, password reset, password change.
-
-**Files:** 13 source files, 76 tests (42 unit + 34 integration).
-**Tables:** users, refresh_tokens, email_verifications, password_resets.
-
----
+User registration, login, JWT (access + refresh tokens), email verification, password reset, password change.
+76 tests. Tables: users, refresh_tokens, email_verifications, password_resets.
 
 #### Infrastructure (commit `37036a6`)
-
-Docker Compose for PostgreSQL 16 alpine on port 5432.
-
----
+Docker Compose for PostgreSQL 16 alpine.
 
 #### M2 — Agencies (commit `5f9df19`)
-
-**Scope:** Agency CRUD, agent management (list/remove/leave/transfer), invitation system (create/accept/decline/revoke).
-
-**Files:** 12 source files, 52 tests (34 unit + 18 integration).
-**Tables:** agencies, agency_invites + AgencyInviteStatus enum.
-
----
+Agency CRUD, agent management, invitation system.
+52 tests. Tables: agencies, agency_invites.
 
 #### Documentation (commit `bf7dba7`)
-
-Full README + PROGRESS.md.
-
----
+README + PROGRESS.md.
 
 #### M3 — Properties (commit `8543fca`)
+Property CRUD, status workflow, pagination + 10 filters, duplication, agency listing.
+38 tests. Tables: properties, media + 3 enums.
 
-**Scope:** Property CRUD, status workflow, pagination with filters, duplication, agency-level listing.
+#### M4 — Pages (commit `e7b9e9a`)
+Page generator — SSR HTML engine for shareable property pages with 9 section types, media/field selection, RTL/LTR, branding, preview watermark.
+41 tests. Table: pages.
 
-**Files:** 10 source files, 38 tests (22 unit + 16 integration).
-**Tables:** properties, media + 3 enums (PropertyType, PropertyStatus, MediaType).
+#### M5 — Sharing (pending commit)
 
-**Key features:** Status workflow (draft→active→under_offer→sold/rented/archived). Pagination with 10 filter criteria. Duplication. Decimal precision for price/area.
+**Scope:** Multichannel sharing (WhatsApp, Email, SMS) with contacts management, unique share links per contact×channel, batch sharing, public page rendering, link deactivation/expiration.
 
----
-
-#### M4 — Pages (pending commit)
-
-**Scope:** Page generator — SSR HTML engine for creating shareable property pages with configurable sections, media selection, and branding.
-
-**Files created (10):**
-- `page.types.ts` — domain types (PageRecord, SelectedElements, SectionConfig, PropertyForPage, MediaForPage, BrandingForPage), interfaces (IPageRepository, IPageDataProvider)
-- `page.errors.ts` — 5 error classes (PageNotFound, NotPageOwner, PropertyNotFoundForPage, InvalidSelectedElements, PageInactive)
-- `page.schemas.ts` — 4 Zod schemas (createPage, updatePage, propertyIdParam, pageIdParam) with selectedElements deep validation
-- `page.service.ts` — create (validates ownership + mediaIds), getById, listByProperty, update, delete, getRenderData (assembles property + media + branding)
-- `page.renderer.ts` — SSR HTML renderer: 9 section types (info, photos, plans, video, 3D, description, location, features, contact), responsive grid layout, RTL/LTR support, preview watermark, branded colors/header/footer, XSS-safe escaping
-- `page.repository.ts` — PrismaPageRepository (CRUD) + PrismaPageDataProvider (fetches property, media, branding data for rendering)
-- `page.controller.ts` — 6 handlers (create, listByProperty, getById, update, remove, preview)
-- `page.routes.ts` — 6 authenticated routes
+**Files created (10 source + 4 test):**
+- `share.types.ts` — 15+ types: ContactRecord, ShareLinkRecord, ShareBatchRecord, ShareRequest/Result, IContactRepository, IShareLinkRepository, IShareBatchRepository, IChannelAdapter, IShareDataProvider
+- `share.errors.ts` — 9 error classes (contact + sharelink)
+- `share.schemas.ts` — Zod: createContact, updateContact, shareRequest, contactListQuery, shareLinkListQuery, param schemas
+- `contact.service.ts` — CRUD with ownership, phone-or-email validation
+- `share.service.ts` — batch share (token generation, adapter dispatch, warnings), resolveToken, deactivate, handleDeliveryWebhook
+- `contact.controller.ts` — 5 handlers
+- `share.controller.ts` — 5 handlers + public page route
+- `share.routes.ts` — 11 routes (5 contact + 5 share + 1 public)
+- `share.repository.ts` — PrismaContactRepository, PrismaShareLinkRepository, PrismaShareBatchRepository, PrismaShareDataProvider
 - `index.ts` — barrel export
-- `tests/unit/page/page.service.test.ts` — 18 unit tests
-- `tests/unit/page/page.renderer.test.ts` — 11 unit tests (RTL, LTR, preview watermark, section rendering, field display, empty sections)
-- `tests/integration/page/page.routes.test.ts` — 12 integration tests
 
-**Prisma migration `add_pages`:** `pages` table with JSON selectedElements column.
+**Tests (50):**
+- `tests/unit/share/contact.service.test.ts` — 12 unit tests
+- `tests/unit/share/share.service.test.ts` — 18 unit tests (batch share, token resolve, deactivate, webhook, adapter integration)
+- `tests/integration/share/contact.routes.test.ts` — 9 integration tests
+- `tests/integration/share/share.routes.test.ts` — 11 integration tests (share batch, link list, deactivate, public page HTML rendering, expired/deactivated links)
+
+**Prisma migration `add_sharing`:** contacts, share_links, share_batches tables + ShareChannel enum.
 
 **Key features:**
-- Server-side HTML rendering — self-contained responsive pages (no JS framework)
-- Configurable sections with order control
-- Media selection per section — validated against property media
-- Field selection for info section (price, rooms, area, etc.)
-- Multiple pages per property for different audiences
-- RTL (Hebrew) / LTR (English/French) support
-- Preview mode with sticky watermark banner
-- Branded header with logo/agency name, themed colors
-- Mobile-first responsive design (CSS grid)
-- XSS protection via HTML entity escaping
-- Branding defaults (red #C8102E) — will integrate M9 later
-
-**Also done:**
-- `testApp.ts` updated with `buildPageTestApp()`
-- `server.ts` wired with PrismaPageRepository, PrismaPageDataProvider, PageService, PageController, pageRoutes
+- Contact CRUD with ownership + phone-or-email constraint
+- Batch sharing: one request → multiple contacts × channels
+- Unique token per ShareLink (UUID v4)
+- Configurable expiration (1-365 days, default 30)
+- Channel adapters: pluggable interface (WhatsApp, Email, SMS stubs)
+- Warnings for skipped channels (missing phone/email)
+- Public page route `GET /api/v1/v/:token` — renders HTML via PageService+PageRenderer
+- Link deactivation (HTTP 410)
+- Link expiration (HTTP 410)
+- Delivery webhook handler (deliveredAt update)
+- Paginated share link history with filters (page, property, contact, channel, status)
 
 ---
 
@@ -129,8 +110,8 @@ Full README + PROGRESS.md.
 | Component | Status | Details |
 |-----------|--------|---------|
 | PostgreSQL | ✅ Running | Docker, port 5432, `immoshare` DB |
-| Prisma | ✅ Synced | 4 migrations applied, client v5.22 |
-| Git | ✅ Pushed | 5 commits on `main` (M4 pending) |
+| Prisma | ✅ Synced | 5 migrations applied, client v5.22 |
+| Git | ✅ Pushed | 6 commits on `main` (M5 pending) |
 | CI/CD | ⬜ | Not configured yet |
 | Deployment | ⬜ | Planned: OVH VPS |
 
@@ -139,15 +120,16 @@ Full README + PROGRESS.md.
 | Issue | Severity | Notes |
 |-------|----------|-------|
 | `tsc --noEmit` fails with rootDir errors | Low | Monorepo path resolution. `tsx` runtime unaffected. |
-| Email sending not implemented | Medium | Placeholder for M8. |
-| Rate limiting not implemented | Low | Defined in security spec but not yet enforced. |
+| Email sending not implemented | Medium | Channel adapter stubs ready. |
+| WhatsApp Cloud API not connected | Medium | Channel adapter stubs ready. |
+| Twilio SMS not connected | Medium | Channel adapter stubs ready. |
 | Media upload not yet implemented | Medium | Tables ready, S3 integration deferred. |
-| Public page route `/v/:token` not yet | Medium | Needs M5 ShareLink integration. |
+| Delivery webhooks endpoints not created | Low | Handler logic ready, webhook routes deferred. |
 
 ## What's Next
 
-**M5 — Sharing** — Share property pages via WhatsApp, Email, SMS:
-- ShareLink model with unique tokens and expiry
-- Public route `GET /v/:token` renders page without auth
-- WhatsApp deep links, email templates, SMS integration
-- Link deactivation on page/property delete
+**M6 — Tracking** — Track page views, clicks, and analytics:
+- TrackEvent model
+- Page opened/viewed events
+- Analytics endpoints
+- Integration with ShareLink (view counting)

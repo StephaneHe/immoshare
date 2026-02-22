@@ -58,7 +58,7 @@ pnpm --filter @immo-share/api test
 pnpm --filter @immo-share/api test -- --coverage
 
 # Run a specific module's tests
-pnpm --filter @immo-share/api test -- --testPathPattern page
+pnpm --filter @immo-share/api test -- --testPathPattern share
 ```
 
 ## Project Structure
@@ -84,15 +84,17 @@ immo-share/
 │   │   │   │   ├── auth/               # M1 — Authentication
 │   │   │   │   ├── agency/             # M2 — Agencies
 │   │   │   │   ├── property/           # M3 — Properties
-│   │   │   │   └── page/              # M4 — Page Generator
-│   │   │   │       ├── page.types.ts          # Domain types + repo/data interfaces
-│   │   │   │       ├── page.errors.ts         # 5 error classes
-│   │   │   │       ├── page.schemas.ts        # Zod schemas (create, update, params)
-│   │   │   │       ├── page.service.ts        # CRUD, render data, media validation
-│   │   │   │       ├── page.renderer.ts       # SSR HTML engine (responsive, RTL/LTR)
-│   │   │   │       ├── page.repository.ts     # Prisma + PageDataProvider
-│   │   │   │       ├── page.controller.ts     # HTTP layer + preview
-│   │   │   │       ├── page.routes.ts         # 6 routes (all authenticated)
+│   │   │   │   ├── page/               # M4 — Page Generator
+│   │   │   │   └── share/              # M5 — Sharing & Contacts
+│   │   │   │       ├── share.types.ts         # Domain types + repo/adapter interfaces
+│   │   │   │       ├── share.errors.ts        # 9 error classes
+│   │   │   │       ├── share.schemas.ts       # Zod schemas (contact, share, params)
+│   │   │   │       ├── contact.service.ts     # Contact CRUD + ownership
+│   │   │   │       ├── share.service.ts       # Batch share, token resolve, webhooks
+│   │   │   │       ├── contact.controller.ts  # Contact HTTP handlers
+│   │   │   │       ├── share.controller.ts    # Share + public page handlers
+│   │   │   │       ├── share.routes.ts        # 11 routes (5 contact + 5 share + 1 public)
+│   │   │   │       ├── share.repository.ts    # Prisma repos + data provider
 │   │   │   │       └── index.ts
 │   │   │   └── server.ts               # Entry point — wires all modules
 │   │   └── tests/
@@ -103,15 +105,18 @@ immo-share/
 │   │       │   ├── auth/
 │   │       │   ├── agency/
 │   │       │   ├── property/
-│   │       │   └── page/
-│   │       │       ├── page.service.test.ts   # 18 unit tests
-│   │       │       └── page.renderer.test.ts  # 11 unit tests
+│   │       │   ├── page/
+│   │       │   └── share/
+│   │       │       ├── contact.service.test.ts  # 12 unit tests
+│   │       │       └── share.service.test.ts    # 18 unit tests
 │   │       └── integration/
 │   │           ├── auth/
 │   │           ├── agency/
 │   │           ├── property/
-│   │           └── page/
-│   │               └── page.routes.test.ts    # 12 integration tests
+│   │           ├── page/
+│   │           └── share/
+│   │               ├── contact.routes.test.ts   # 9 integration tests
+│   │               └── share.routes.test.ts     # 11 integration tests
 │   └── shared/                          # Shared between packages
 ├── docker-compose.yml                   # PostgreSQL 16
 ├── PROGRESS.md                          # Project progress tracker
@@ -171,7 +176,7 @@ All endpoints return a consistent JSON envelope:
 | M2 | Agencies (CRUD, invites, agents) | ✅ Done | 52 | 14 |
 | M3 | Properties (CRUD, status, filters, duplicate) | ✅ Done | 38 | 8 |
 | M4 | Page Generator (SSR pages, renderer, preview) | ✅ Done | 41 | 6 |
-| M5 | Sharing (WhatsApp, Email, SMS) | ⬜ | — | — |
+| M5 | Sharing (contacts, links, multichannel) | ✅ Done | 50 | 11 |
 | M6 | Tracking (views, clicks, analytics) | ⬜ | — | — |
 | M7 | Partners (invitations, approvals) | ⬜ | — | — |
 | M8 | Notifications (push, email, reminders) | ⬜ | — | — |
@@ -235,6 +240,39 @@ All endpoints return a consistent JSON envelope:
 | DELETE | `/api/v1/pages/:id` | Yes | owner | Delete page |
 | GET | `/api/v1/pages/:id/preview` | Yes | owner | Preview (HTML with watermark) |
 
+### Contacts (M5) — 5 endpoints
+
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| POST | `/api/v1/contacts` | Yes | Create contact |
+| GET | `/api/v1/contacts` | Yes | List my contacts (paginated) |
+| GET | `/api/v1/contacts/:id` | Yes | Get contact details |
+| PATCH | `/api/v1/contacts/:id` | Yes | Update contact |
+| DELETE | `/api/v1/contacts/:id` | Yes | Delete contact |
+
+### Sharing (M5) — 6 endpoints
+
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| POST | `/api/v1/pages/:pageId/share` | Yes | Send to contacts (batch) |
+| GET | `/api/v1/share-links` | Yes | List share link history |
+| GET | `/api/v1/share-links/:id` | Yes | Get share link details |
+| PATCH | `/api/v1/share-links/:id/deactivate` | Yes | Deactivate a share link |
+| GET | `/api/v1/v/:token` | **No** | **Public** — view shared page |
+
+#### Sharing Features
+
+- **Multichannel** — WhatsApp, Email, SMS via pluggable channel adapters
+- **Batch sharing** — send to multiple contacts × channels in one request
+- **Unique tokens** — UUID v4 per contact × page × channel
+- **Configurable expiration** — 1 to 365 days (default 30)
+- **Smart warnings** — skips channels when contact lacks phone/email
+- **Public page route** — renders HTML via token, no auth required
+- **Link deactivation** — manually disable links (HTTP 410)
+- **Link expiration** — expired links return HTTP 410
+- **Delivery webhooks** — handler for Brevo/Twilio/WhatsApp callbacks
+- **Paginated history** — filter by property, contact, channel, status
+
 #### Page Features
 
 - **Server-side HTML rendering** — self-contained responsive pages
@@ -261,6 +299,9 @@ All endpoints return a consistent JSON envelope:
 | `properties` | M3 | Real estate listings (25+ fields, soft-delete) |
 | `media` | M3 | Property media files |
 | `pages` | M4 | Generated pages with selectedElements JSON |
+| `contacts` | M5 | Agent contacts (phone, email, tags) |
+| `share_links` | M5 | Unique share tokens per contact × page × channel |
+| `share_batches` | M5 | Batch sharing records |
 
 ### Migrations
 
@@ -270,6 +311,7 @@ All endpoints return a consistent JSON envelope:
 | `20260222202931_add_agencies` | M2 tables + user.agencyId FK |
 | `20260222210049_add_properties` | M3 tables + 3 enums |
 | `20260222211906_add_pages` | M4 pages table |
+| `20260222214341_add_sharing` | M5 contacts, share_links, share_batches + ShareChannel enum |
 
 ### Status Workflow (Properties)
 
@@ -286,6 +328,8 @@ draft → active → under_offer → sold
 
 **Pages (M4):** A page references a property and contains `selectedElements` JSON defining which sections, media, and fields to display. Multiple pages per property. Media IDs are validated against property media. Inactive pages return 410. Preview adds watermark.
 
+**Sharing (M5):** Each ShareLink is unique per contact × page × channel. Token is UUID v4. Links expire after configurable days (default 30). Channel adapters are pluggable (stubs for WhatsApp/Brevo/Twilio). Contacts must have at least phone or email. Delivery webhooks update deliveredAt.
+
 ## Environment Variables
 
 | Variable | Default | Description |
@@ -295,6 +339,7 @@ draft → active → under_offer → sold
 | `PORT` | `3000` | API server port |
 | `HOST` | `0.0.0.0` | API server host |
 | `LOG_LEVEL` | `info` | Fastify log level |
+| `PUBLIC_URL` | `https://app.immoshare.com` | Base URL for share links |
 
 ## Docker
 

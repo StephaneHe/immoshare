@@ -12,12 +12,14 @@ import { propertyRoutes } from '../../src/modules/property/property.routes';
 import { PageService } from '../../src/modules/page/page.service';
 import { PageController } from '../../src/modules/page/page.controller';
 import { pageRoutes } from '../../src/modules/page/page.routes';
+import { ContactService } from '../../src/modules/share/contact.service';
+import { ContactController } from '../../src/modules/share/contact.controller';
+import { ShareService } from '../../src/modules/share/share.service';
+import { ShareController } from '../../src/modules/share/share.controller';
+import { shareRoutes } from '../../src/modules/share/share.routes';
 import { errorHandler } from '../../src/common/middleware/errorHandler';
 import '../../src/common/types/request';
 
-/**
- * Build a Fastify test app with the given AuthService instance.
- */
 export function buildTestApp(authService: AuthService): FastifyInstance {
   const app = Fastify({ logger: false });
   app.setErrorHandler(errorHandler);
@@ -26,9 +28,6 @@ export function buildTestApp(authService: AuthService): FastifyInstance {
   return app;
 }
 
-/**
- * Build a Fastify test app with Agency services.
- */
 export function buildAgencyTestApp(
   agencyService: AgencyService,
   inviteService: AgencyInviteService,
@@ -40,9 +39,6 @@ export function buildAgencyTestApp(
   return app;
 }
 
-/**
- * Build a Fastify test app with Property service.
- */
 export function buildPropertyTestApp(propertyService: PropertyService): FastifyInstance {
   const app = Fastify({ logger: false });
   app.setErrorHandler(errorHandler);
@@ -51,13 +47,23 @@ export function buildPropertyTestApp(propertyService: PropertyService): FastifyI
   return app;
 }
 
-/**
- * Build a Fastify test app with Page service.
- */
 export function buildPageTestApp(pageService: PageService): FastifyInstance {
   const app = Fastify({ logger: false });
   app.setErrorHandler(errorHandler);
   const controller = new PageController(pageService);
   pageRoutes(app, controller);
+  return app;
+}
+
+export function buildShareTestApp(
+  contactService: ContactService,
+  shareService: ShareService,
+  pageService: PageService,
+): FastifyInstance {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  const contactController = new ContactController(contactService);
+  const shareController = new ShareController(shareService, pageService);
+  shareRoutes(app, contactController, shareController);
   return app;
 }

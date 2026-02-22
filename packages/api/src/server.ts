@@ -16,24 +16,30 @@ import { PageService } from './modules/page/page.service';
 import { PageController } from './modules/page/page.controller';
 import { pageRoutes } from './modules/page/page.routes';
 import { PrismaPageRepository, PrismaPageDataProvider } from './modules/page/page.repository';
+import { ContactService } from './modules/share/contact.service';
+import { ContactController } from './modules/share/contact.controller';
+import { ShareService } from './modules/share/share.service';
+import { ShareController } from './modules/share/share.controller';
+import { shareRoutes } from './modules/share/share.routes';
+import {
+  PrismaContactRepository,
+  PrismaShareLinkRepository,
+  PrismaShareBatchRepository,
+  PrismaShareDataProvider,
+} from './modules/share/share.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
-import './common/types/request'; // augment FastifyRequest
+import './common/types/request';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
 async function main() {
   const app = Fastify({
-    logger: {
-      level: process.env.LOG_LEVEL || 'info',
-    },
+    logger: { level: process.env.LOG_LEVEL || 'info' },
   });
 
-  // Global error handler
   app.setErrorHandler(errorHandler);
-
-  // Health check
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
   // Wire M1 — Auth
@@ -63,6 +69,17 @@ async function main() {
   const pageController = new PageController(pageService);
   pageRoutes(app, pageController);
 
+  // Wire M5 — Contacts & Sharing
+  const contactRepo = new PrismaContactRepository(prisma);
+  const contactService = new ContactService(contactRepo);
+  const contactController = new ContactController(contactService);
+  const shareLinkRepo = new PrismaShareLinkRepository(prisma);
+  const shareBatchRepo = new PrismaShareBatchRepository(prisma);
+  const shareDataProvider = new PrismaShareDataProvider(prisma);
+  const shareService = new ShareService(shareLinkRepo, shareBatchRepo, contactRepo, shareDataProvider);
+  const shareController = new ShareController(shareService, pageService);
+  shareRoutes(app, contactController, shareController);
+
   // Graceful shutdown
   const shutdown = async () => {
     app.log.info('Shutting down...');
@@ -70,11 +87,9 @@ async function main() {
     await prisma.$disconnect();
     process.exit(0);
   };
-
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 
-  // Start
   try {
     await app.listen({ port: PORT, host: HOST });
     app.log.info(`Server listening on http://${HOST}:${PORT}`);
