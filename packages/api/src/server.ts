@@ -3,6 +3,11 @@ import prisma from './common/prisma';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthController } from './modules/auth/auth.controller';
 import { authRoutes } from './modules/auth/auth.routes';
+import { AgencyService } from './modules/agency/agency.service';
+import { AgencyInviteService } from './modules/agency/agency-invite.service';
+import { AgencyController } from './modules/agency/agency.controller';
+import { agencyRoutes } from './modules/agency/agency.routes';
+import { PrismaAgencyRepository, PrismaAgencyInviteRepository } from './modules/agency/agency.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request'; // augment FastifyRequest
@@ -23,11 +28,19 @@ async function main() {
   // Health check
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
-  // Wire auth module
+  // Wire M1 — Auth
   const authRepo = new PrismaAuthRepository(prisma);
   const authService = new AuthService(authRepo);
   const authController = new AuthController(authService);
   authRoutes(app, authController);
+
+  // Wire M2 — Agencies
+  const agencyRepo = new PrismaAgencyRepository(prisma);
+  const agencyInviteRepo = new PrismaAgencyInviteRepository(prisma);
+  const agencyService = new AgencyService(agencyRepo, agencyInviteRepo);
+  const agencyInviteService = new AgencyInviteService(agencyRepo, agencyInviteRepo);
+  const agencyController = new AgencyController(agencyService, agencyInviteService);
+  agencyRoutes(app, agencyController);
 
   // Graceful shutdown
   const shutdown = async () => {

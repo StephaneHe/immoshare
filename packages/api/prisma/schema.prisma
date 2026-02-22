@@ -1,6 +1,6 @@
 // Prisma schema — ImmoShare
-// Module: M1 Auth
-// Tables: User, RefreshToken, EmailVerification, PasswordReset
+// Modules: M1 Auth, M2 Agencies
+// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite
 
 generator client {
   provider = "prisma-client-js"
@@ -35,6 +35,11 @@ model User {
   refreshTokens      RefreshToken[]
   emailVerifications EmailVerification[]
   passwordResets     PasswordReset[]
+
+  // M2 — Agency relations
+  ownedAgency        Agency?         @relation("AgencyAdmin")
+  agency             Agency?         @relation("AgencyMembers", fields: [agencyId], references: [id])
+  sentInvites        AgencyInvite[]  @relation("InviteSender")
 
   @@map("users")
 }
@@ -83,10 +88,64 @@ model PasswordReset {
 }
 
 enum UserRole {
-  SUPER_ADMIN @map("super_admin")
+  SUPER_ADMIN  @map("super_admin")
   AGENCY_ADMIN @map("agency_admin")
-  AGENT       @map("agent")
-  PARTNER     @map("partner")
+  AGENT        @map("agent")
+  PARTNER      @map("partner")
 
   @@map("user_role")
+}
+
+// ============================================================
+// M2 — Agencies
+// ============================================================
+
+model Agency {
+  id        String    @id @default(uuid())
+  name      String
+  address   String?
+  city      String?
+  phone     String?
+  email     String?
+  logoUrl   String?   @map("logo_url")
+  website   String?
+  adminId   String    @unique @map("admin_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  admin   User           @relation("AgencyAdmin", fields: [adminId], references: [id])
+  members User[]         @relation("AgencyMembers")
+  invites AgencyInvite[]
+
+  @@map("agencies")
+}
+
+model AgencyInvite {
+  id         String             @id @default(uuid())
+  agencyId   String             @map("agency_id")
+  email      String
+  invitedBy  String             @map("invited_by")
+  status     AgencyInviteStatus @default(PENDING)
+  token      String             @unique
+  expiresAt  DateTime           @map("expires_at")
+  createdAt  DateTime           @default(now()) @map("created_at")
+  resolvedAt DateTime?          @map("resolved_at")
+
+  agency  Agency @relation(fields: [agencyId], references: [id])
+  inviter User   @relation("InviteSender", fields: [invitedBy], references: [id])
+
+  @@index([token])
+  @@index([email])
+  @@map("agency_invites")
+}
+
+enum AgencyInviteStatus {
+  PENDING  @map("pending")
+  ACCEPTED @map("accepted")
+  DECLINED @map("declined")
+  EXPIRED  @map("expired")
+  REVOKED  @map("revoked")
+
+  @@map("agency_invite_status")
 }

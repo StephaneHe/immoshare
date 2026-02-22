@@ -24,7 +24,6 @@ build/
 Thumbs.db
 
 # Prisma
-packages/api/prisma/migrations/
 packages/api/prisma/*.db
 
 # Test
