@@ -58,7 +58,7 @@ pnpm --filter @immo-share/api test
 pnpm --filter @immo-share/api test -- --coverage
 
 # Run a specific module's tests
-pnpm --filter @immo-share/api test -- --testPathPattern agency
+pnpm --filter @immo-share/api test -- --testPathPattern property
 ```
 
 ## Project Structure
@@ -88,29 +88,41 @@ immo-share/
 │   │   │   │   │   ├── auth.repository.ts
 │   │   │   │   │   ├── auth.controller.ts
 │   │   │   │   │   └── auth.routes.ts
-│   │   │   │   └── agency/             # M2 — Agencies
-│   │   │   │       ├── agency.types.ts          # Domain types + repo interfaces
-│   │   │   │       ├── agency.errors.ts         # 13 error classes
-│   │   │   │       ├── agency.schemas.ts        # Zod validation schemas
-│   │   │   │       ├── agency.service.ts        # Agency business logic
-│   │   │   │       ├── agency-invite.service.ts # Invitation business logic
-│   │   │   │       ├── agency.repository.ts     # Prisma implementations
-│   │   │   │       ├── agency.controller.ts     # HTTP layer
-│   │   │   │       ├── agency.routes.ts         # Route registration
-│   │   │   │       └── index.ts                 # Barrel export
+│   │   │   │   ├── agency/             # M2 — Agencies
+│   │   │   │   │   ├── agency.types.ts
+│   │   │   │   │   ├── agency.errors.ts
+│   │   │   │   │   ├── agency.schemas.ts
+│   │   │   │   │   ├── agency.service.ts
+│   │   │   │   │   ├── agency-invite.service.ts
+│   │   │   │   │   ├── agency.repository.ts
+│   │   │   │   │   ├── agency.controller.ts
+│   │   │   │   │   ├── agency.routes.ts
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── property/           # M3 — Properties
+│   │   │   │       ├── property.types.ts        # Domain types + repo interfaces
+│   │   │   │       ├── property.errors.ts       # 7 error classes
+│   │   │   │       ├── property.schemas.ts      # Zod schemas (create, update, filter, status)
+│   │   │   │       ├── property.service.ts      # CRUD, status workflow, duplicate
+│   │   │   │       ├── property.repository.ts   # Prisma with pagination & filters
+│   │   │   │       ├── property.controller.ts   # HTTP layer
+│   │   │   │       ├── property.routes.ts       # 8 routes (all authenticated)
+│   │   │   │       └── index.ts
 │   │   │   └── server.ts               # Entry point — wires all modules
 │   │   └── tests/
 │   │       ├── helpers/
 │   │       │   ├── auth.ts             # JWT token generator for tests
-│   │       │   └── testApp.ts          # Fastify test app builders
+│   │       │   └── testApp.ts          # Fastify test app builders (auth, agency, property)
 │   │       ├── unit/
 │   │       │   ├── auth/auth.service.test.ts
-│   │       │   └── agency/
-│   │       │       ├── agency.service.test.ts
-│   │       │       └── agency-invite.service.test.ts
+│   │       │   ├── agency/
+│   │       │   │   ├── agency.service.test.ts
+│   │       │   │   └── agency-invite.service.test.ts
+│   │       │   └── property/
+│   │       │       └── property.service.test.ts
 │   │       └── integration/
 │   │           ├── auth/auth.routes.test.ts
-│   │           └── agency/agency.routes.test.ts
+│   │           ├── agency/agency.routes.test.ts
+│   │           └── property/property.routes.test.ts
 │   └── shared/                          # Shared between packages
 │       ├── constants/
 │       │   ├── enums.ts                 # UserRole enum
@@ -163,7 +175,7 @@ routes.ts → controller.ts → service.ts → repository.ts → Prisma
 
 ### Dependency Inversion
 
-Services depend on **repository interfaces** (`IAgencyRepository`), not Prisma directly. This allows unit tests to mock the repository without touching the database.
+Services depend on **repository interfaces** (`IPropertyRepository`), not Prisma directly. This allows unit tests to mock the repository without touching the database.
 
 ### TDD Workflow
 
@@ -198,7 +210,7 @@ All errors extend `AppError(code, message, statusCode)`. The global `errorHandle
 
 | Error type | HTTP status | Example |
 |-----------|------------|---------|
-| `AppError` subclass | Defined in error | `AgencyNotFoundError` → 404 |
+| `AppError` subclass | Defined in error | `PropertyNotFoundError` → 404 |
 | `ZodError` | 400 | Missing required field |
 | Fastify built-in | 4xx | Malformed JSON |
 | Unhandled | 500 | Unexpected crash |
@@ -209,7 +221,7 @@ All errors extend `AppError(code, message, statusCode)`. The global `errorHandle
 |---|--------|--------|-------|-----------|
 | M1 | Auth (users, JWT, register/login) | ✅ Done | 76 | 8 |
 | M2 | Agencies (CRUD, invites, agents) | ✅ Done | 52 | 14 |
-| M3 | Properties (listings, media) | ⬜ | — | — |
+| M3 | Properties (CRUD, status, filters, duplicate) | ✅ Done | 38 | 8 |
 | M4 | Page Generator (web pages from properties) | ⬜ | — | — |
 | M5 | Sharing (WhatsApp, Email, SMS) | ⬜ | — | — |
 | M6 | Tracking (views, clicks, analytics) | ⬜ | — | — |
@@ -253,6 +265,32 @@ See [PROGRESS.md](PROGRESS.md) for detailed progress tracking.
 | POST | `/api/v1/agency-invites/:token/decline` | Yes | agent | Decline invitation |
 | GET | `/api/v1/users/me/agency-invites` | Yes | agent | My pending invitations |
 
+### Properties (M3) — 8 endpoints
+
+| Method | URL | Auth | Role | Description |
+|--------|-----|------|------|-------------|
+| POST | `/api/v1/properties` | Yes | agent (any) | Create a property listing |
+| GET | `/api/v1/properties` | Yes | agent (own) | List my properties (paginated + filters) |
+| GET | `/api/v1/properties/:id` | Yes | agent (owner) | Get property details |
+| PUT | `/api/v1/properties/:id` | Yes | agent (owner) | Update property |
+| PATCH | `/api/v1/properties/:id/status` | Yes | agent (owner) | Change status (workflow) |
+| DELETE | `/api/v1/properties/:id` | Yes | agent (owner) | Soft-delete property |
+| POST | `/api/v1/properties/:id/duplicate` | Yes | agent (owner) | Duplicate property (reset to draft) |
+| GET | `/api/v1/agencies/:id/properties` | Yes | agency_admin | List all agency properties |
+
+#### Property Filters (GET /properties)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | enum | Filter by status (draft, active, under_offer, sold, rented, archived) |
+| `propertyType` | enum | Filter by type (apartment, house, penthouse, etc.) |
+| `minPrice` / `maxPrice` | number | Price range |
+| `city` | string | Filter by city (case-insensitive) |
+| `minArea` / `maxArea` | number | Area range (sqm) |
+| `minRooms` / `maxRooms` | number | Rooms range |
+| `search` | string | Full-text search in title, description, address |
+| `page` / `limit` | number | Pagination (default: page=1, limit=20) |
+
 ## Database
 
 ### Tables
@@ -265,6 +303,8 @@ See [PROGRESS.md](PROGRESS.md) for detailed progress tracking.
 | `password_resets` | M1 | Password reset tokens |
 | `agencies` | M2 | Real estate agencies (soft-delete) |
 | `agency_invites` | M2 | Agent invitation tokens with status lifecycle |
+| `properties` | M3 | Real estate listings (25+ fields, soft-delete) |
+| `media` | M3 | Property media files (photos, plans, 3D, videos) |
 
 ### Migrations
 
@@ -272,24 +312,44 @@ See [PROGRESS.md](PROGRESS.md) for detailed progress tracking.
 |-----------|-------------|
 | `20260222200120_init` | M1 tables: users, refresh_tokens, email_verifications, password_resets |
 | `20260222202931_add_agencies` | M2 tables: agencies, agency_invites + user.agencyId FK |
+| `20260222210049_add_properties` | M3 tables: properties, media + enums PropertyType, PropertyStatus, MediaType |
 
-### Roles
+### Enums
 
-| Role | Level | Description |
-|------|-------|-------------|
-| `super_admin` | 0 | Platform administrator |
-| `agency_admin` | 1 | Agency owner, manages agents and invitations |
-| `agent` | 2 | Independent or agency-bound real estate agent |
-| `partner` | 3 | Read-only access via invitation code |
+| Enum | Values |
+|------|--------|
+| `UserRole` | super_admin, agency_admin, agent, partner |
+| `AgencyInviteStatus` | pending, accepted, declined, expired, revoked |
+| `PropertyType` | apartment, house, penthouse, duplex, garden_apartment, studio, villa, cottage, land, commercial, office, other |
+| `PropertyStatus` | draft, active, under_offer, sold, rented, archived |
+| `MediaType` | photo, floor_plan, model_3d, video, document |
+
+### Status Workflow
+
+```
+draft → active → under_offer → sold
+                             → rented → active
+                                      → archived
+       → archived (from any) → draft
+```
 
 ### Key Business Rules
 
+**Auth & Agencies (M1–M2):**
 - A user can only belong to **one agency** at a time
 - An `agency_admin` can only own **one agency**
-- The admin **cannot leave** without transferring admin role first
-- The admin **cannot remove themselves** (must transfer first)
 - Agency deletion is a **soft delete** — sets `deletedAt`, unlinks all members
-- Invitations expire after **7 days** and have a status lifecycle: `pending` → `accepted`/`declined`/`expired`/`revoked`
+- Invitations expire after **7 days**
+
+**Properties (M3):**
+- A property belongs to one **owner** (the creating agent)
+- If the agent belongs to an agency, `agencyId` is auto-filled
+- Only the owner can update/delete/duplicate their properties
+- Status follows a strict **workflow** — invalid transitions are rejected
+- Duplication resets status to `draft`, does not copy media
+- `agency_admin` can view all properties across the agency
+- Price stored as `Decimal(12,2)` — currency defaults to ILS
+- Soft-delete via `deletedAt` — excluded from all queries
 
 ## Environment Variables
 
@@ -342,17 +402,9 @@ docker compose down -v
 ```
 feat(M1): complete auth module
 feat(M2): complete agency module with 52 tests
+feat(M3): complete property module with 38 tests
 infra: add docker-compose with PostgreSQL 16
-fix(M1): handle edge case in token refresh
-docs: update README with M2 endpoints
-```
-
-### Git History
-
-```
-5f9df19 feat(M2): complete agency module with 52 tests
-37036a6 infra: add docker-compose with PostgreSQL 16
-f4056b1 feat(M1): complete auth module
+docs: comprehensive README and project progress tracker
 ```
 
 ## License

@@ -6,13 +6,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Modules completed | 2 / 9 |
-| Total tests | 128 |
-| Total endpoints | 22 |
-| Total DB tables | 6 |
-| Total source files | 22 |
-| Total lines added | ~9,100 |
-| Git commits | 3 |
+| Modules completed | 3 / 9 |
+| Total tests | 166 |
+| Total endpoints | 30 |
+| Total DB tables | 8 |
+| Total source files | 32 |
+| Git commits | 5 |
 
 ## Module Status
 
@@ -20,7 +19,7 @@
 |---|--------|--------|-----------|-------------------|-------------|-----------|--------|--------|
 | M1 | Auth | ✅ Done | 42 | 34 | 76 | 8 | 4 | `f4056b1` |
 | M2 | Agencies | ✅ Done | 34 | 18 | 52 | 14 | 2 | `5f9df19` |
-| M3 | Properties | ⬜ Not started | — | — | — | — | — | — |
+| M3 | Properties | ✅ Done | 22 | 16 | 38 | 8 | 2 | `b11efc5` |
 | M4 | Page Generator | ⬜ Not started | — | — | — | — | — | — |
 | M5 | Sharing | ⬜ Not started | — | — | — | — | — | — |
 | M6 | Tracking | ⬜ Not started | — | — | — | — | — | — |
@@ -33,8 +32,8 @@
 ```
 M1 Auth ✅
 ├── M2 Agencies ✅
-│   └── M3 Properties ← NEXT
-│       └── M4 Page Generator
+│   └── M3 Properties ✅
+│       └── M4 Page Generator ← NEXT
 │           └── M5 Sharing
 │               └── M6 Tracking
 │                   └── M8 Notifications
@@ -117,11 +116,45 @@ M1 Auth ✅
 - Soft-delete cascade: unlinks all agents, revokes pending invites
 - Transfer admin: swaps roles between old and new admin
 
+---
+
+#### Documentation (commit `bf7dba7`)
+
+- Full README with architecture docs, module pattern, test strategy, API envelope, error handling, dev workflow
+- PROGRESS.md created with module status, timeline, dependency graph
+
+---
+
+#### M3 — Properties (commit `b11efc5`)
+
+**Scope:** Property CRUD, status workflow, pagination with filters, duplication, agency-level listing.
+
+**Files created (10):**
+- `property.types.ts` — domain types (`PropertyRecord`, `MediaRecord`), interfaces (`IPropertyRepository`, `IMediaRepository`), status transition map, pagination types
+- `property.errors.ts` — 7 error classes (PropertyNotFound, NotPropertyOwner, InvalidStatusTransition, MediaNotFound, MediaLimitExceeded, MediaSizeLimit, InvalidMediaType)
+- `property.schemas.ts` — 6 Zod schemas (create, update, changeStatus, propertyId, listQuery, agencyId)
+- `property.service.ts` — create (auto-fill agencyId), getById, update, changeStatus (workflow validation), delete (soft), list (paginated + filters), listByAgency, duplicate
+- `property.repository.ts` — `PrismaPropertyRepository` with Prisma enum mapping, pagination helper, filter builder (status, type, price range, area range, rooms range, city, full-text search)
+- `property.controller.ts` — 8 handler methods
+- `property.routes.ts` — 8 routes (all authenticated)
+- `index.ts` — barrel export
+- `tests/unit/property/property.service.test.ts` — 22 unit tests
+- `tests/integration/property/property.routes.test.ts` — 16 integration tests
+
+**Prisma migration `add_properties`:** `properties` (25+ columns), `media` tables + enums `PropertyType` (12 values), `PropertyStatus` (6 values), `MediaType` (5 values)
+
+**Key features implemented:**
+- Status workflow: `draft → active → under_offer → sold/rented`, `archived` from any, `archived → draft`
+- Pagination with `page`/`limit` and total count
+- Multi-criteria filtering: status, propertyType, price range, area range, rooms range, city, full-text search
+- Duplication: copies all data except media, resets status to `draft`, appends "(copy)" to title
+- Agency listing for `agency_admin`
+- Auto-fill `agencyId` from user's current agency membership
+- Decimal precision for price (12,2) and area (8,2)
+
 **Also done:**
-- `.gitignore` fixed: Prisma migrations now tracked
-- `.env.example` created
-- `README.md` created with full docs
-- `testApp.ts` updated with `buildAgencyTestApp()`
+- `testApp.ts` updated with `buildPropertyTestApp()`
+- `server.ts` wired with `PrismaPropertyRepository`, `PropertyService`, `PropertyController`, `propertyRoutes`
 
 ---
 
@@ -130,8 +163,8 @@ M1 Auth ✅
 | Component | Status | Details |
 |-----------|--------|---------|
 | PostgreSQL | ✅ Running | Docker, port 5432, `immoshare` DB |
-| Prisma | ✅ Synced | 2 migrations applied, client v5.22 |
-| Git | ✅ Pushed | 3 commits on `main` |
+| Prisma | ✅ Synced | 3 migrations applied, client v5.22 |
+| Git | ✅ Pushed | 5 commits on `main` |
 | CI/CD | ⬜ | Not configured yet |
 | Deployment | ⬜ | Planned: OVH VPS |
 
@@ -139,14 +172,21 @@ M1 Auth ✅
 
 | Issue | Severity | Notes |
 |-------|----------|-------|
-| `tsc --noEmit` fails with 3 rootDir errors | Low | Monorepo path resolution. `tsx` runtime unaffected. Fix: add `composite: true` to shared tsconfig. |
+| `tsc --noEmit` fails with 3 rootDir errors | Low | Monorepo path resolution. `tsx` runtime unaffected. |
 | Email sending not implemented | Medium | M1 forgot-password and M2 invites create tokens but don't send emails. Placeholder for M8. |
 | Rate limiting not implemented | Low | Defined in security spec but not yet enforced. |
+| Media upload not yet implemented | Medium | M3 schema and types ready (Media table, IMediaRepository), but file upload/S3 integration deferred. |
 
 ## What's Next
 
-**M3 — Properties (Gestion des Biens)** — CRUD for real estate listings including:
-- Property data (type, price, area, rooms, address, description)
-- Media management (photos, floor plans, 3D tours)
-- Agency-level visibility for `agency_admin`
-- Soft delete, status lifecycle (draft → published → sold → archived)
+**M3 — Media upload** (optional enhancement):
+- File upload via multipart/form-data
+- S3/local storage integration
+- Thumbnail generation for photos
+- Media limits enforcement (50 photos, 10 plans, 5 videos, 500 MB total)
+
+**M4 — Page Generator** — Generate shareable web pages from property data:
+- Template engine for property pages
+- Public URLs with property details + media gallery
+- SEO-friendly HTML output
+- Mobile-responsive design

@@ -8,6 +8,10 @@ import { AgencyInviteService } from './modules/agency/agency-invite.service';
 import { AgencyController } from './modules/agency/agency.controller';
 import { agencyRoutes } from './modules/agency/agency.routes';
 import { PrismaAgencyRepository, PrismaAgencyInviteRepository } from './modules/agency/agency.repository';
+import { PropertyService } from './modules/property/property.service';
+import { PropertyController } from './modules/property/property.controller';
+import { propertyRoutes } from './modules/property/property.routes';
+import { PrismaPropertyRepository } from './modules/property/property.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request'; // augment FastifyRequest
@@ -41,6 +45,12 @@ async function main() {
   const agencyInviteService = new AgencyInviteService(agencyRepo, agencyInviteRepo);
   const agencyController = new AgencyController(agencyService, agencyInviteService);
   agencyRoutes(app, agencyController);
+
+  // Wire M3 — Properties
+  const propertyRepo = new PrismaPropertyRepository(prisma);
+  const propertyService = new PropertyService(propertyRepo);
+  const propertyController = new PropertyController(propertyService);
+  propertyRoutes(app, propertyController);
 
   // Graceful shutdown
   const shutdown = async () => {
