@@ -1,6 +1,6 @@
 // Prisma schema — ImmoShare
-// Modules: M1 Auth, M2 Agencies, M3 Properties
-// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite, Property, Media
+// Modules: M1 Auth, M2 Agencies, M3 Properties, M4 Pages
+// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite, Property, Media, Page
 
 generator client {
   provider = "prisma-client-js"
@@ -35,13 +35,9 @@ model User {
   refreshTokens      RefreshToken[]
   emailVerifications EmailVerification[]
   passwordResets     PasswordReset[]
-
-  // M2 — Agency relations
   ownedAgency        Agency?         @relation("AgencyAdmin")
   agency             Agency?         @relation("AgencyMembers", fields: [agencyId], references: [id])
   sentInvites        AgencyInvite[]  @relation("InviteSender")
-
-  // M3 — Property relations
   properties         Property[]
 
   @@map("users")
@@ -54,9 +50,7 @@ model RefreshToken {
   expiresAt DateTime  @map("expires_at")
   createdAt DateTime  @default(now()) @map("created_at")
   revokedAt DateTime? @map("revoked_at")
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([userId])
   @@index([token])
   @@map("refresh_tokens")
@@ -69,9 +63,7 @@ model EmailVerification {
   expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([token])
   @@map("email_verifications")
 }
@@ -83,9 +75,7 @@ model PasswordReset {
   expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([token])
   @@map("password_resets")
 }
@@ -95,7 +85,6 @@ enum UserRole {
   AGENCY_ADMIN @map("agency_admin")
   AGENT        @map("agent")
   PARTNER      @map("partner")
-
   @@map("user_role")
 }
 
@@ -116,12 +105,10 @@ model Agency {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-
   admin      User           @relation("AgencyAdmin", fields: [adminId], references: [id])
   members    User[]         @relation("AgencyMembers")
   invites    AgencyInvite[]
   properties Property[]
-
   @@map("agencies")
 }
 
@@ -135,10 +122,8 @@ model AgencyInvite {
   expiresAt  DateTime           @map("expires_at")
   createdAt  DateTime           @default(now()) @map("created_at")
   resolvedAt DateTime?          @map("resolved_at")
-
   agency  Agency @relation(fields: [agencyId], references: [id])
   inviter User   @relation("InviteSender", fields: [invitedBy], references: [id])
-
   @@index([token])
   @@index([email])
   @@map("agency_invites")
@@ -150,7 +135,6 @@ enum AgencyInviteStatus {
   DECLINED @map("declined")
   EXPIRED  @map("expired")
   REVOKED  @map("revoked")
-
   @@map("agency_invite_status")
 }
 
@@ -188,11 +172,10 @@ model Property {
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")
   deletedAt    DateTime?      @map("deleted_at")
-
   owner  User    @relation(fields: [ownerId], references: [id])
   agency Agency? @relation(fields: [agencyId], references: [id])
   media  Media[]
-
+  pages  Page[]
   @@index([ownerId])
   @@index([agencyId])
   @@index([status])
@@ -213,9 +196,7 @@ model Media {
   order        Int       @default(0)
   caption      String?
   createdAt    DateTime  @default(now()) @map("created_at")
-
   property Property @relation(fields: [propertyId], references: [id])
-
   @@index([propertyId])
   @@map("media")
 }
@@ -233,7 +214,6 @@ enum PropertyType {
   COMMERCIAL       @map("commercial")
   OFFICE           @map("office")
   OTHER            @map("other")
-
   @@map("property_type")
 }
 
@@ -244,7 +224,6 @@ enum PropertyStatus {
   SOLD        @map("sold")
   RENTED      @map("rented")
   ARCHIVED    @map("archived")
-
   @@map("property_status")
 }
 
@@ -254,6 +233,24 @@ enum MediaType {
   MODEL_3D   @map("model_3d")
   VIDEO      @map("video")
   DOCUMENT   @map("document")
-
   @@map("media_type")
+}
+
+// ============================================================
+// M4 — Pages
+// ============================================================
+
+model Page {
+  id               String   @id @default(uuid())
+  propertyId       String   @map("property_id")
+  brandingId       String?  @map("branding_id")
+  title            String?
+  selectedElements Json     @map("selected_elements")
+  layout           String   @default("standard")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  property Property @relation(fields: [propertyId], references: [id])
+  @@index([propertyId])
+  @@map("pages")
 }

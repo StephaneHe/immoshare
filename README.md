@@ -58,7 +58,7 @@ pnpm --filter @immo-share/api test
 pnpm --filter @immo-share/api test -- --coverage
 
 # Run a specific module's tests
-pnpm --filter @immo-share/api test -- --testPathPattern property
+pnpm --filter @immo-share/api test -- --testPathPattern page
 ```
 
 ## Project Structure
@@ -82,56 +82,37 @@ immo-share/
 │   │   │   │   └── prisma.ts           # Shared Prisma client singleton
 │   │   │   ├── modules/
 │   │   │   │   ├── auth/               # M1 — Authentication
-│   │   │   │   │   ├── auth.types.ts
-│   │   │   │   │   ├── auth.errors.ts  # AppError base class + auth errors
-│   │   │   │   │   ├── auth.service.ts
-│   │   │   │   │   ├── auth.repository.ts
-│   │   │   │   │   ├── auth.controller.ts
-│   │   │   │   │   └── auth.routes.ts
 │   │   │   │   ├── agency/             # M2 — Agencies
-│   │   │   │   │   ├── agency.types.ts
-│   │   │   │   │   ├── agency.errors.ts
-│   │   │   │   │   ├── agency.schemas.ts
-│   │   │   │   │   ├── agency.service.ts
-│   │   │   │   │   ├── agency-invite.service.ts
-│   │   │   │   │   ├── agency.repository.ts
-│   │   │   │   │   ├── agency.controller.ts
-│   │   │   │   │   ├── agency.routes.ts
-│   │   │   │   │   └── index.ts
-│   │   │   │   └── property/           # M3 — Properties
-│   │   │   │       ├── property.types.ts        # Domain types + repo interfaces
-│   │   │   │       ├── property.errors.ts       # 7 error classes
-│   │   │   │       ├── property.schemas.ts      # Zod schemas (create, update, filter, status)
-│   │   │   │       ├── property.service.ts      # CRUD, status workflow, duplicate
-│   │   │   │       ├── property.repository.ts   # Prisma with pagination & filters
-│   │   │   │       ├── property.controller.ts   # HTTP layer
-│   │   │   │       ├── property.routes.ts       # 8 routes (all authenticated)
+│   │   │   │   ├── property/           # M3 — Properties
+│   │   │   │   └── page/              # M4 — Page Generator
+│   │   │   │       ├── page.types.ts          # Domain types + repo/data interfaces
+│   │   │   │       ├── page.errors.ts         # 5 error classes
+│   │   │   │       ├── page.schemas.ts        # Zod schemas (create, update, params)
+│   │   │   │       ├── page.service.ts        # CRUD, render data, media validation
+│   │   │   │       ├── page.renderer.ts       # SSR HTML engine (responsive, RTL/LTR)
+│   │   │   │       ├── page.repository.ts     # Prisma + PageDataProvider
+│   │   │   │       ├── page.controller.ts     # HTTP layer + preview
+│   │   │   │       ├── page.routes.ts         # 6 routes (all authenticated)
 │   │   │   │       └── index.ts
 │   │   │   └── server.ts               # Entry point — wires all modules
 │   │   └── tests/
 │   │       ├── helpers/
 │   │       │   ├── auth.ts             # JWT token generator for tests
-│   │       │   └── testApp.ts          # Fastify test app builders (auth, agency, property)
+│   │       │   └── testApp.ts          # Fastify test app builders
 │   │       ├── unit/
-│   │       │   ├── auth/auth.service.test.ts
+│   │       │   ├── auth/
 │   │       │   ├── agency/
-│   │       │   │   ├── agency.service.test.ts
-│   │       │   │   └── agency-invite.service.test.ts
-│   │       │   └── property/
-│   │       │       └── property.service.test.ts
+│   │       │   ├── property/
+│   │       │   └── page/
+│   │       │       ├── page.service.test.ts   # 18 unit tests
+│   │       │       └── page.renderer.test.ts  # 11 unit tests
 │   │       └── integration/
-│   │           ├── auth/auth.routes.test.ts
-│   │           ├── agency/agency.routes.test.ts
-│   │           └── property/property.routes.test.ts
+│   │           ├── auth/
+│   │           ├── agency/
+│   │           ├── property/
+│   │           └── page/
+│   │               └── page.routes.test.ts    # 12 integration tests
 │   └── shared/                          # Shared between packages
-│       ├── constants/
-│       │   ├── enums.ts                 # UserRole enum
-│       │   └── index.ts
-│       ├── types/
-│       │   └── user.ts                  # UserDto, AuthResponseDto
-│       └── validators/
-│           ├── auth.ts                  # RegisterDto, LoginDto, etc.
-│           └── user.ts
 ├── docker-compose.yml                   # PostgreSQL 16
 ├── PROGRESS.md                          # Project progress tracker
 └── README.md
@@ -173,47 +154,14 @@ routes.ts → controller.ts → service.ts → repository.ts → Prisma
 | **Errors** | Typed error classes extending `AppError` |
 | **Schemas** | Zod schemas for request validation |
 
-### Dependency Inversion
-
-Services depend on **repository interfaces** (`IPropertyRepository`), not Prisma directly. This allows unit tests to mock the repository without touching the database.
-
-### TDD Workflow
-
-1. Write **failing tests** (RED) — define expected behavior
-2. Implement the **minimum code** to pass (GREEN)
-3. Refactor while tests stay green (REFACTOR)
-
-### Test Strategy
-
-| Type | What is mocked | What is tested | Location |
-|------|---------------|----------------|----------|
-| **Unit** | Repository interface | Service business logic | `tests/unit/` |
-| **Integration** | Service (jest.Mocked) | Controller + routes + error handler | `tests/integration/` |
-
-Both use Fastify's `inject()` — no real HTTP server needed.
-
 ### API Response Envelope
 
 All endpoints return a consistent JSON envelope:
 
 ```json
-// Success
 { "success": true, "data": { ... } }
-
-// Error
-{ "success": false, "error": { "code": "ERROR_CODE", "message": "Human-readable", "details": {} } }
+{ "success": false, "error": { "code": "ERROR_CODE", "message": "...", "details": {} } }
 ```
-
-### Error Handling
-
-All errors extend `AppError(code, message, statusCode)`. The global `errorHandler` middleware maps:
-
-| Error type | HTTP status | Example |
-|-----------|------------|---------|
-| `AppError` subclass | Defined in error | `PropertyNotFoundError` → 404 |
-| `ZodError` | 400 | Missing required field |
-| Fastify built-in | 4xx | Malformed JSON |
-| Unhandled | 500 | Unexpected crash |
 
 ## Modules
 
@@ -222,14 +170,12 @@ All errors extend `AppError(code, message, statusCode)`. The global `errorHandle
 | M1 | Auth (users, JWT, register/login) | ✅ Done | 76 | 8 |
 | M2 | Agencies (CRUD, invites, agents) | ✅ Done | 52 | 14 |
 | M3 | Properties (CRUD, status, filters, duplicate) | ✅ Done | 38 | 8 |
-| M4 | Page Generator (web pages from properties) | ⬜ | — | — |
+| M4 | Page Generator (SSR pages, renderer, preview) | ✅ Done | 41 | 6 |
 | M5 | Sharing (WhatsApp, Email, SMS) | ⬜ | — | — |
 | M6 | Tracking (views, clicks, analytics) | ⬜ | — | — |
 | M7 | Partners (invitations, approvals) | ⬜ | — | — |
 | M8 | Notifications (push, email, reminders) | ⬜ | — | — |
 | M9 | Branding (logo, colors, agent identity) | ⬜ | — | — |
-
-See [PROGRESS.md](PROGRESS.md) for detailed progress tracking.
 
 ## API Endpoints
 
@@ -269,27 +215,36 @@ See [PROGRESS.md](PROGRESS.md) for detailed progress tracking.
 
 | Method | URL | Auth | Role | Description |
 |--------|-----|------|------|-------------|
-| POST | `/api/v1/properties` | Yes | agent (any) | Create a property listing |
-| GET | `/api/v1/properties` | Yes | agent (own) | List my properties (paginated + filters) |
-| GET | `/api/v1/properties/:id` | Yes | agent (owner) | Get property details |
-| PUT | `/api/v1/properties/:id` | Yes | agent (owner) | Update property |
-| PATCH | `/api/v1/properties/:id/status` | Yes | agent (owner) | Change status (workflow) |
-| DELETE | `/api/v1/properties/:id` | Yes | agent (owner) | Soft-delete property |
-| POST | `/api/v1/properties/:id/duplicate` | Yes | agent (owner) | Duplicate property (reset to draft) |
-| GET | `/api/v1/agencies/:id/properties` | Yes | agency_admin | List all agency properties |
+| POST | `/api/v1/properties` | Yes | agent | Create property |
+| GET | `/api/v1/properties` | Yes | agent (own) | List properties (paginated + filters) |
+| GET | `/api/v1/properties/:id` | Yes | owner | Get property details |
+| PUT | `/api/v1/properties/:id` | Yes | owner | Update property |
+| PATCH | `/api/v1/properties/:id/status` | Yes | owner | Change status (workflow) |
+| DELETE | `/api/v1/properties/:id` | Yes | owner | Soft-delete |
+| POST | `/api/v1/properties/:id/duplicate` | Yes | owner | Duplicate (reset to draft) |
+| GET | `/api/v1/agencies/:id/properties` | Yes | agency_admin | Agency properties |
 
-#### Property Filters (GET /properties)
+### Pages (M4) — 6 endpoints
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | enum | Filter by status (draft, active, under_offer, sold, rented, archived) |
-| `propertyType` | enum | Filter by type (apartment, house, penthouse, etc.) |
-| `minPrice` / `maxPrice` | number | Price range |
-| `city` | string | Filter by city (case-insensitive) |
-| `minArea` / `maxArea` | number | Area range (sqm) |
-| `minRooms` / `maxRooms` | number | Rooms range |
-| `search` | string | Full-text search in title, description, address |
-| `page` / `limit` | number | Pagination (default: page=1, limit=20) |
+| Method | URL | Auth | Role | Description |
+|--------|-----|------|------|-------------|
+| POST | `/api/v1/properties/:propertyId/pages` | Yes | owner | Create page from property |
+| GET | `/api/v1/properties/:propertyId/pages` | Yes | owner | List pages for property |
+| GET | `/api/v1/pages/:id` | Yes | owner | Get page details |
+| PATCH | `/api/v1/pages/:id` | Yes | owner | Update selected elements |
+| DELETE | `/api/v1/pages/:id` | Yes | owner | Delete page |
+| GET | `/api/v1/pages/:id/preview` | Yes | owner | Preview (HTML with watermark) |
+
+#### Page Features
+
+- **Server-side HTML rendering** — self-contained responsive pages
+- **Configurable sections** — info, photos, plans, video, 3D, description, location, features, contact
+- **Media selection** — choose which photos/media appear on each page
+- **Field selection** — choose which property fields to display
+- **Multiple pages per property** — different selections for different audiences
+- **RTL/LTR support** — Hebrew (RTL) and English/French (LTR)
+- **Preview with watermark** — owner can preview before sharing
+- **Branding integration** — agent name, agency, logo, colors (defaults until M9)
 
 ## Database
 
@@ -302,29 +257,21 @@ See [PROGRESS.md](PROGRESS.md) for detailed progress tracking.
 | `email_verifications` | M1 | Email verification tokens |
 | `password_resets` | M1 | Password reset tokens |
 | `agencies` | M2 | Real estate agencies (soft-delete) |
-| `agency_invites` | M2 | Agent invitation tokens with status lifecycle |
+| `agency_invites` | M2 | Agent invitation tokens |
 | `properties` | M3 | Real estate listings (25+ fields, soft-delete) |
-| `media` | M3 | Property media files (photos, plans, 3D, videos) |
+| `media` | M3 | Property media files |
+| `pages` | M4 | Generated pages with selectedElements JSON |
 
 ### Migrations
 
 | Migration | Description |
 |-----------|-------------|
-| `20260222200120_init` | M1 tables: users, refresh_tokens, email_verifications, password_resets |
-| `20260222202931_add_agencies` | M2 tables: agencies, agency_invites + user.agencyId FK |
-| `20260222210049_add_properties` | M3 tables: properties, media + enums PropertyType, PropertyStatus, MediaType |
+| `20260222200120_init` | M1 tables |
+| `20260222202931_add_agencies` | M2 tables + user.agencyId FK |
+| `20260222210049_add_properties` | M3 tables + 3 enums |
+| `20260222211906_add_pages` | M4 pages table |
 
-### Enums
-
-| Enum | Values |
-|------|--------|
-| `UserRole` | super_admin, agency_admin, agent, partner |
-| `AgencyInviteStatus` | pending, accepted, declined, expired, revoked |
-| `PropertyType` | apartment, house, penthouse, duplex, garden_apartment, studio, villa, cottage, land, commercial, office, other |
-| `PropertyStatus` | draft, active, under_offer, sold, rented, archived |
-| `MediaType` | photo, floor_plan, model_3d, video, document |
-
-### Status Workflow
+### Status Workflow (Properties)
 
 ```
 draft → active → under_offer → sold
@@ -335,21 +282,9 @@ draft → active → under_offer → sold
 
 ### Key Business Rules
 
-**Auth & Agencies (M1–M2):**
-- A user can only belong to **one agency** at a time
-- An `agency_admin` can only own **one agency**
-- Agency deletion is a **soft delete** — sets `deletedAt`, unlinks all members
-- Invitations expire after **7 days**
+**Properties (M3):** Property belongs to one owner (creating agent). Status follows strict workflow. Duplication resets to draft. Agency admin can view all agency properties.
 
-**Properties (M3):**
-- A property belongs to one **owner** (the creating agent)
-- If the agent belongs to an agency, `agencyId` is auto-filled
-- Only the owner can update/delete/duplicate their properties
-- Status follows a strict **workflow** — invalid transitions are rejected
-- Duplication resets status to `draft`, does not copy media
-- `agency_admin` can view all properties across the agency
-- Price stored as `Decimal(12,2)` — currency defaults to ILS
-- Soft-delete via `deletedAt` — excluded from all queries
+**Pages (M4):** A page references a property and contains `selectedElements` JSON defining which sections, media, and fields to display. Multiple pages per property. Media IDs are validated against property media. Inactive pages return 410. Preview adds watermark.
 
 ## Environment Variables
 
@@ -364,47 +299,10 @@ draft → active → under_offer → sold
 ## Docker
 
 ```bash
-# Start PostgreSQL
-docker compose up -d
-
-# Check container health
-docker ps
-# → immoshare-db (healthy)
-
-# Access PostgreSQL CLI
-docker exec -it immoshare-db psql -U immo -d immoshare
-
-# List tables
-docker exec immoshare-db psql -U immo -d immoshare -c "\dt"
-
-# Stop (data preserved in volume)
-docker compose down
-
-# Stop and delete ALL data
-docker compose down -v
-```
-
-## Development Workflow
-
-### Adding a new module
-
-1. Read the module spec in `docs/M{N}_{NAME}.md`
-2. Create `packages/api/src/modules/{name}/` with the standard files
-3. Write RED tests in `tests/unit/{name}/` and `tests/integration/{name}/`
-4. Implement service → repository → controller → routes
-5. Wire module in `server.ts`
-6. Update Prisma schema if needed, run `prisma migrate dev`
-7. Update this README and PROGRESS.md
-8. Commit with conventional message: `feat(M{N}): ...`
-
-### Conventional Commits
-
-```
-feat(M1): complete auth module
-feat(M2): complete agency module with 52 tests
-feat(M3): complete property module with 38 tests
-infra: add docker-compose with PostgreSQL 16
-docs: comprehensive README and project progress tracker
+docker compose up -d        # Start PostgreSQL
+docker ps                   # Check health
+docker compose down          # Stop (data preserved)
+docker compose down -v       # Stop + delete data
 ```
 
 ## License

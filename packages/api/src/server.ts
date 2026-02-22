@@ -12,6 +12,10 @@ import { PropertyService } from './modules/property/property.service';
 import { PropertyController } from './modules/property/property.controller';
 import { propertyRoutes } from './modules/property/property.routes';
 import { PrismaPropertyRepository } from './modules/property/property.repository';
+import { PageService } from './modules/page/page.service';
+import { PageController } from './modules/page/page.controller';
+import { pageRoutes } from './modules/page/page.routes';
+import { PrismaPageRepository, PrismaPageDataProvider } from './modules/page/page.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request'; // augment FastifyRequest
@@ -51,6 +55,13 @@ async function main() {
   const propertyService = new PropertyService(propertyRepo);
   const propertyController = new PropertyController(propertyService);
   propertyRoutes(app, propertyController);
+
+  // Wire M4 — Pages
+  const pageRepo = new PrismaPageRepository(prisma);
+  const pageDataProvider = new PrismaPageDataProvider(prisma);
+  const pageService = new PageService(pageRepo, pageDataProvider);
+  const pageController = new PageController(pageService);
+  pageRoutes(app, pageController);
 
   // Graceful shutdown
   const shutdown = async () => {

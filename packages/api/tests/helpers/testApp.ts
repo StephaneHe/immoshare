@@ -9,6 +9,9 @@ import { agencyRoutes } from '../../src/modules/agency/agency.routes';
 import { PropertyService } from '../../src/modules/property/property.service';
 import { PropertyController } from '../../src/modules/property/property.controller';
 import { propertyRoutes } from '../../src/modules/property/property.routes';
+import { PageService } from '../../src/modules/page/page.service';
+import { PageController } from '../../src/modules/page/page.controller';
+import { pageRoutes } from '../../src/modules/page/page.routes';
 import { errorHandler } from '../../src/common/middleware/errorHandler';
 import '../../src/common/types/request';
 
@@ -45,5 +48,16 @@ export function buildPropertyTestApp(propertyService: PropertyService): FastifyI
   app.setErrorHandler(errorHandler);
   const controller = new PropertyController(propertyService);
   propertyRoutes(app, controller);
+  return app;
+}
+
+/**
+ * Build a Fastify test app with Page service.
+ */
+export function buildPageTestApp(pageService: PageService): FastifyInstance {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  const controller = new PageController(pageService);
+  pageRoutes(app, controller);
   return app;
 }
