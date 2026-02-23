@@ -167,7 +167,7 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 - Public collection routes (no auth, token-based)
 - Authenticated consultation routes (ownership enforced)
 
-#### M7 — Partners & Reshare (pending commit)
+#### M7 — Partners & Reshare (commit `3c87c21`)
 
 **Scope:** Partnership invitations via 8-char codes, partner catalog (read-only), reshare request/approval workflow.
 
@@ -200,7 +200,7 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 - Reshare: unique (partner, property) constraint, ownership-verified approve/reject
 - 14 endpoints covering full partner lifecycle
 
-#### M7 — Partners & Reshare (pending commit)
+#### M7 — Partners & Reshare (commit `3c87c21`)
 
 **Scope:** Partner invitations (8-char code, 48h expiry), catalog access (read-only), reshare requests with approval workflow.
 
