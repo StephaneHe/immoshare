@@ -12,7 +12,7 @@ export class FcmPushProvider implements IPushProvider {
   ) {
     // TODO: Replace with actual firebase-admin messaging
     // admin.messaging().sendEachForMulticast({ tokens, notification: { title, body }, data })
-    console.log(`[FCM] Sending push to ${tokens.length} tokens: ${payload.title}`);
+    // Stub: no-op until firebase-admin is configured
     return { successCount: tokens.length, failedTokens: [] as string[] };
   }
 }

@@ -1,59 +1,18 @@
 import Fastify from 'fastify';
 import prisma from './common/prisma';
-import { AuthService } from './modules/auth/auth.service';
-import { AuthController } from './modules/auth/auth.controller';
-import { authRoutes } from './modules/auth/auth.routes';
-import { AgencyService } from './modules/agency/agency.service';
-import { AgencyInviteService } from './modules/agency/agency-invite.service';
-import { AgencyController } from './modules/agency/agency.controller';
-import { agencyRoutes } from './modules/agency/agency.routes';
-import { PrismaAgencyRepository, PrismaAgencyInviteRepository } from './modules/agency/agency.repository';
-import { PropertyService } from './modules/property/property.service';
-import { PropertyController } from './modules/property/property.controller';
-import { propertyRoutes } from './modules/property/property.routes';
-import { PrismaPropertyRepository } from './modules/property/property.repository';
-import { PageService } from './modules/page/page.service';
-import { PageController } from './modules/page/page.controller';
-import { pageRoutes } from './modules/page/page.routes';
-import { PrismaPageRepository, PrismaPageDataProvider } from './modules/page/page.repository';
-import { ContactService } from './modules/share/contact.service';
-import { ContactController } from './modules/share/contact.controller';
-import { ShareService } from './modules/share/share.service';
-import { ShareController } from './modules/share/share.controller';
-import { shareRoutes } from './modules/share/share.routes';
-import {
-  PrismaContactRepository,
-  PrismaShareLinkRepository,
-  PrismaShareBatchRepository,
-  PrismaShareDataProvider,
-} from './modules/share/share.repository';
-import { TrackingService } from './modules/tracking/tracking.service';
-import { AnalyticsService } from './modules/tracking/analytics.service';
-import { TrackingController } from './modules/tracking/tracking.controller';
-import { trackingRoutes } from './modules/tracking/tracking.routes';
-import { PrismaTrackEventRepository, PrismaTrackingDataProvider } from './modules/tracking/tracking.repository';
-import { PartnerInviteService } from './modules/partner/partner-invite.service';
-import { PartnerCatalogService } from './modules/partner/partner-catalog.service';
-import { ReshareService } from './modules/partner/reshare.service';
-import { PartnerController } from './modules/partner/partner.controller';
-import { partnerRoutes } from './modules/partner/partner.routes';
-import { PrismaPartnerInviteRepository, PrismaReshareRepository, PrismaPartnerDataProvider } from './modules/partner/partner.repository';
-import { NotificationService } from './modules/notification/notification.service';
-import { NotificationController } from './modules/notification/notification.controller';
-import { notificationRoutes } from './modules/notification/notification.routes';
-import {
-  PrismaNotificationRepository,
-  PrismaSettingsRepository,
-  PrismaPushTokenRepository,
-} from './modules/notification/notification.repository';
-import { FcmPushProvider } from './modules/notification/push.service';
-import { BrandingService } from './modules/branding/branding.service';
-import { BrandingController } from './modules/branding/branding.controller';
-import { brandingRoutes } from './modules/branding/branding.routes';
-import { PrismaBrandingRepository, PrismaBrandingDataProvider } from './modules/branding/branding.repository';
 import { errorHandler } from './common/middleware/errorHandler';
-import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request';
+
+// Barrel imports — one per module
+import { AuthService, AuthController, authRoutes, PrismaAuthRepository } from './modules/auth';
+import { AgencyService, AgencyInviteService, AgencyController, agencyRoutes, PrismaAgencyRepository, PrismaAgencyInviteRepository } from './modules/agency';
+import { PropertyService, PropertyController, propertyRoutes, PrismaPropertyRepository } from './modules/property';
+import { PageService, PageController, pageRoutes, PrismaPageRepository, PrismaPageDataProvider } from './modules/page';
+import { ContactService, ContactController, ShareService, ShareController, shareRoutes, PrismaContactRepository, PrismaShareLinkRepository, PrismaShareBatchRepository, PrismaShareDataProvider } from './modules/share';
+import { TrackingService, AnalyticsService, TrackingController, trackingRoutes, PrismaTrackEventRepository, PrismaTrackingDataProvider } from './modules/tracking';
+import { PartnerInviteService, PartnerCatalogService, ReshareService, PartnerController, partnerRoutes, PrismaPartnerInviteRepository, PrismaReshareRepository, PrismaPartnerDataProvider } from './modules/partner';
+import { NotificationService, NotificationController, notificationRoutes, FcmPushProvider, PrismaNotificationRepository, PrismaSettingsRepository, PrismaPushTokenRepository } from './modules/notification';
+import { BrandingService, BrandingController, brandingRoutes, PrismaBrandingRepository, PrismaBrandingDataProvider } from './modules/branding';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';

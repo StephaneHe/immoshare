@@ -87,7 +87,6 @@ export class PrismaPropertyRepository implements IPropertyRepository {
 
   async update(id: string, data: UpdatePropertyInput): Promise<PropertyRecord> {
     const prismaData: any = { ...data };
-    if (data.propertyType) prismaData.propertyType = typeToPrisma[data.propertyType] as any;
     delete prismaData.propertyType;
     if (data.propertyType) prismaData.propertyType = typeToPrisma[data.propertyType] as any;
 
