@@ -178,7 +178,7 @@ All endpoints return a consistent JSON envelope:
 | M4 | Page Generator (SSR pages, renderer, preview) | ✅ Done | 41 | 6 |
 | M5 | Sharing (contacts, links, multichannel) | ✅ Done | 50 | 11 |
 | M6 | Tracking (events, analytics, dashboard) | ✅ Done | 33 | 5 |
-| M7 | Partners (invitations, approvals) | ⬜ | — | — |
+| M7 | Partners (invitations, approvals, reshare) | ✅ Done | 34 | 14 |
 | M8 | Notifications (push, email, reminders) | ⬜ | — | — |
 | M9 | Branding (logo, colors, agent identity) | ⬜ | — | — |
 
@@ -303,6 +303,8 @@ All endpoints return a consistent JSON envelope:
 | `share_links` | M5 | Unique share tokens per contact × page × channel |
 | `share_batches` | M5 | Batch sharing records |
 | `track_events` | M6 | Page view, section, time tracking events |
+| `partner_invites` | M7 | Partner invitation codes and partnerships |
+| `reshare_requests` | M7 | Property reshare approval workflow |
 
 ### Migrations
 
@@ -314,6 +316,7 @@ All endpoints return a consistent JSON envelope:
 | `20260222211906_add_pages` | M4 pages table |
 | `20260222214341_add_sharing` | M5 contacts, share_links, share_batches + ShareChannel enum |
 | `20260223060008_add_tracking` | M6 track_events + TrackEventType enum |
+| `20260223171110_add_partners` | M7 partner_invites, reshare_requests + PartnerInviteStatus, ReshareRequestStatus enums |
 
 ### Status Workflow (Properties)
 

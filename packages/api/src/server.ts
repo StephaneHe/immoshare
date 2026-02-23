@@ -32,6 +32,12 @@ import { AnalyticsService } from './modules/tracking/analytics.service';
 import { TrackingController } from './modules/tracking/tracking.controller';
 import { trackingRoutes } from './modules/tracking/tracking.routes';
 import { PrismaTrackEventRepository, PrismaTrackingDataProvider } from './modules/tracking/tracking.repository';
+import { PartnerInviteService } from './modules/partner/partner-invite.service';
+import { PartnerCatalogService } from './modules/partner/partner-catalog.service';
+import { ReshareService } from './modules/partner/reshare.service';
+import { PartnerController } from './modules/partner/partner.controller';
+import { partnerRoutes } from './modules/partner/partner.routes';
+import { PrismaPartnerInviteRepository, PrismaReshareRepository, PrismaPartnerDataProvider } from './modules/partner/partner.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request';
@@ -92,6 +98,7 @@ async function main() {
   const analyticsService = new AnalyticsService(trackingDataProvider);
   const trackingController = new TrackingController(trackingService, analyticsService);
   trackingRoutes(app, trackingController);
+
 
   // Graceful shutdown
   const shutdown = async () => {

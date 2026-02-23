@@ -6,11 +6,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Modules completed | 6 / 9 |
-| Total tests | 290 |
-| Total endpoints | 52 |
-| Total DB tables | 13 |
-| Git commits | 9 |
+| Modules completed | 7 / 9 |
+| Total tests | 324 |
+| Total endpoints | 66 |
+| Total DB tables | 15 |
+| Git commits | 10 |
 
 ## Module Status
 
@@ -22,7 +22,7 @@
 | M4 | Pages | ✅ Done | 29 | 12 | 41 | 6 | 1 | `e7b9e9a` |
 | M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | `fba6f06` |
 | M6 | Tracking | ✅ Done | 22 | 11 | 33 | 5 | 1 | `1315b60` |
-| M7 | Partners | ⬜ Not started | — | — | — | — | — | — |
+| M7 | Partners | ✅ Done | 22 | 17 | 39 | 14 | 2 | pending |
 | M8 | Notifications | ⬜ Not started | — | — | — | — | — | — |
 | M9 | Branding | ⬜ Not started | — | — | — | — | — | — |
 
@@ -35,7 +35,8 @@ M1 Auth ✅
 │       └── M4 Pages ✅
 │           └── M5 Sharing ✅
 │               └── M6 Tracking ✅
-│                   └── M8 Notifications ← NEXT
+│           └── M7 Partners ✅
+│       └── M8 Notifications ← NEXT
 ├── M9 Branding
 └── M7 Partners (depends on M1, M2, M3)
 ```
@@ -165,3 +166,69 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 - Global dashboard: period stats, recent activity (last 20), top properties by opens
 - Public collection routes (no auth, token-based)
 - Authenticated consultation routes (ownership enforced)
+
+#### M7 — Partners & Reshare (pending commit)
+
+**Scope:** Partnership invitations via 8-char codes, partner catalog (read-only), reshare request/approval workflow.
+
+**Files created (10 source + 1 migration + 4 test):**
+- `partner.types.ts` — PartnerInviteRecord, ReshareRequestRecord, IPartnerInviteRepository, IReshareRepository, IPartnerDataProvider
+- `partner.errors.ts` — 10 error classes (invite not found, expired, revoked, limit exceeded, already partner, self invite, not partner, reshare already requested, reshare not found, not owner)
+- `partner.schemas.ts` — Zod: acceptCode, reshareRequest, inviteIdParam, invitePropertyParam
+- `partner-invite.service.ts` — Generate 8-char hex code, accept/revoke with cascade (revoke reshares + deactivate share links), 50 partner limit
+- `partner-catalog.service.ts` — List active properties of inviter, property detail with ownership check
+- `reshare.service.ts` — Request/approve/reject reshare with partnership and ownership verification
+- `partner.controller.ts` — 14 handlers
+- `partner.routes.ts` — 14 routes (all authenticated)
+- `partner.repository.ts` — PrismaPartnerInviteRepository + PrismaReshareRepository + PrismaPartnerDataProvider
+- `index.ts` — barrel export
+
+**Tests (39):**
+- `tests/unit/partner/partner-invite.service.test.ts` — 12 unit tests (code gen, expiry, limit, accept, revoke cascade)
+- `tests/unit/partner/partner-catalog.service.test.ts` — 4 unit tests (list, revoked, not partner, no draft)
+- `tests/unit/partner/reshare.service.test.ts` — 8 unit tests (request, approve, reject, errors)
+- `tests/integration/partner/partner.routes.test.ts` — 15 integration tests (invites, accept, partners, catalog, reshare CRUD)
+
+**Prisma migration `add_partners`:** partner_invites + reshare_requests tables, PartnerInviteStatus + ReshareRequestStatus enums.
+
+**Key features:**
+- 8-char hex invite code with 48h expiry
+- Max 50 active partners per agent
+- Self-invite prevention
+- Revocation cascade: revoking partner → reject all reshare requests + deactivate share links
+- Partner catalog: read-only view of inviter's active properties with media
+- Reshare: unique (partner, property) constraint, ownership-verified approve/reject
+- 14 endpoints covering full partner lifecycle
+
+#### M7 — Partners & Reshare (pending commit)
+
+**Scope:** Partner invitations (8-char code, 48h expiry), catalog access (read-only), reshare requests with approval workflow.
+
+**Files created (9 source + 1 migration + 4 test):**
+- `partner.types.ts` — PartnerInviteRecord, ReshareRequestRecord, IPartnerInviteRepository, IReshareRepository, IPartnerDataProvider
+- `partner.errors.ts` — 10 error classes (invite not found, expired, limit exceeded, already partner, self invite, not partner, reshare already requested, reshare not found, not owner, invite revoked)
+- `partner-invite.service.ts` — Code generation (8-char hex, 48h expiry), accept, revoke with cascade (reshare revocation + share link deactivation), max 50 partners
+- `partner-catalog.service.ts` — List active properties of inviter, property detail (read-only, ownership validated)
+- `reshare.service.ts` — Request reshare (partnership verified, no duplicate pending), approve/reject (ownership enforced), list received/sent
+- `partner.schemas.ts` — Zod: acceptCode, reshareRequest, inviteId, inviteProperty params
+- `partner.controller.ts` — 14 handlers (invites, partners, catalog, reshare)
+- `partner.routes.ts` — 14 endpoints (all authenticated)
+- `partner.repository.ts` — PrismaPartnerInviteRepository + PrismaReshareRepository + PrismaPartnerDataProvider
+- `index.ts` — barrel export
+
+**Tests (34):**
+- `tests/unit/partner/partner-invite.service.test.ts` — 12 tests (code gen, accept, revoke cascade)
+- `tests/unit/partner/partner-catalog.service.test.ts` — 4 tests (list active, revoked, not invitee, no draft)
+- `tests/unit/partner/reshare.service.test.ts` — 8 tests (request, approve, reject with ownership)
+- `tests/integration/partner/partner.routes.test.ts` — 10 tests (all endpoints with auth/error scenarios)
+
+**Prisma migration `add_partners`:** partner_invites + reshare_requests + PartnerInviteStatus + ReshareRequestStatus enums.
+
+**Key features:**
+- 8-char alphanumeric invite codes, 48h expiry
+- Max 50 active partners per agent
+- Self-invite prevention
+- Cascade on revoke: revoke reshares + deactivate share links
+- Property catalog read-only (only active properties)
+- Reshare unique constraint per (partner, property)
+- Ownership enforcement on approve/reject

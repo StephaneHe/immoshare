@@ -1,6 +1,6 @@
 // Prisma schema — ImmoShare
-// Modules: M1 Auth, M2 Agencies, M3 Properties, M4 Pages, M5 Sharing, M6 Tracking
-// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite, Property, Media, Page, Contact, ShareLink, ShareBatch, TrackEvent
+// Modules: M1 Auth, M2 Agencies, M3 Properties, M4 Pages, M5 Sharing, M6 Tracking, M7 Partners
+// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite, Property, Media, Page, Contact, ShareLink, ShareBatch, TrackEvent, PartnerInvite, ReshareRequest
 
 generator client {
   provider = "prisma-client-js"
@@ -41,6 +41,10 @@ model User {
   properties         Property[]
   contacts           Contact[]
   shareBatches       ShareBatch[]
+  partnerInvitesSent  PartnerInvite[] @relation("PartnerInviter")
+  partnerInvitesRecv  PartnerInvite[] @relation("PartnerInvitee")
+  resharePartner      ReshareRequest[] @relation("ResharePartner")
+  reshareResolver     ReshareRequest[] @relation("ReshareResolver")
 
   @@map("users")
 }
@@ -178,6 +182,7 @@ model Property {
   agency Agency? @relation(fields: [agencyId], references: [id])
   media  Media[]
   pages  Page[]
+  reshareRequests ReshareRequest[]
   @@index([ownerId])
   @@index([agencyId])
   @@index([status])
@@ -344,4 +349,59 @@ enum TrackEventType {
   TIME_SPENT     @map("time_spent")
   PAGE_CLOSED    @map("page_closed")
   @@map("track_event_type")
+}
+
+// ============================================================
+// M7 — Partners & Reshare
+// ============================================================
+
+model PartnerInvite {
+  id          String              @id @default(uuid())
+  inviterId   String              @map("inviter_id")
+  inviteeId   String?             @map("invitee_id")
+  code        String              @unique
+  status      PartnerInviteStatus @default(PENDING)
+  permissions Json                @default("{\"canView\": true, \"canReshare\": false}")
+  expiresAt   DateTime            @map("expires_at")
+  acceptedAt  DateTime?           @map("accepted_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  inviter User  @relation("PartnerInviter", fields: [inviterId], references: [id])
+  invitee User? @relation("PartnerInvitee", fields: [inviteeId], references: [id])
+  @@index([code])
+  @@index([inviterId])
+  @@index([inviteeId])
+  @@map("partner_invites")
+}
+
+model ReshareRequest {
+  id          String               @id @default(uuid())
+  partnerId   String               @map("partner_id")
+  propertyId  String               @map("property_id")
+  status      ReshareRequestStatus @default(PENDING)
+  message     String?              @db.Text
+  requestedAt DateTime             @default(now()) @map("requested_at")
+  resolvedAt  DateTime?            @map("resolved_at")
+  resolvedBy  String?              @map("resolved_by")
+  partner  User     @relation("ResharePartner", fields: [partnerId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+  resolver User?    @relation("ReshareResolver", fields: [resolvedBy], references: [id])
+  @@unique([partnerId, propertyId])
+  @@index([propertyId])
+  @@index([status])
+  @@map("reshare_requests")
+}
+
+enum PartnerInviteStatus {
+  PENDING  @map("pending")
+  ACCEPTED @map("accepted")
+  REVOKED  @map("revoked")
+  EXPIRED  @map("expired")
+  @@map("partner_invite_status")
+}
+
+enum ReshareRequestStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+  @@map("reshare_request_status")
 }

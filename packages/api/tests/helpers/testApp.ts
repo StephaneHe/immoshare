@@ -83,3 +83,21 @@ export function buildTrackingTestApp(
   trackingRoutes(app, controller);
   return app;
 }
+
+import { PartnerInviteService } from '../../src/modules/partner/partner-invite.service';
+import { PartnerCatalogService } from '../../src/modules/partner/partner-catalog.service';
+import { ReshareService } from '../../src/modules/partner/reshare.service';
+import { PartnerController } from '../../src/modules/partner/partner.controller';
+import { partnerRoutes } from '../../src/modules/partner/partner.routes';
+
+export function buildPartnerTestApp(
+  inviteService: PartnerInviteService,
+  catalogService: PartnerCatalogService,
+  reshareService: ReshareService,
+): FastifyInstance {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  const controller = new PartnerController(inviteService, catalogService, reshareService);
+  partnerRoutes(app, controller);
+  return app;
+}
