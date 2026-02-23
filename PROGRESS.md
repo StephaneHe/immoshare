@@ -24,7 +24,7 @@
 | M6 | Tracking | ✅ Done | 22 | 11 | 33 | 5 | 1 | `1315b60` |
 | M7 | Partners | ✅ Done | 24 | 10 | 34 | 14 | 2 | `3c87c21` |
 | M8 | Notifications | ✅ Done | 14 | 11 | 25 | 9 | 3 | `384aae6` |
-| M9 | Branding | ✅ Done | 15 | 12 | 27 | 7 | 1 | pending |
+| M9 | Branding | ✅ Done | 15 | 12 | 27 | 7 | 1 | `d757803` |
 
 ## Dependency Graph (Build Order)
 
