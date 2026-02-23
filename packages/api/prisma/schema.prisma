@@ -45,6 +45,9 @@ model User {
   partnerInvitesRecv  PartnerInvite[] @relation("PartnerInvitee")
   resharePartner      ReshareRequest[] @relation("ResharePartner")
   reshareResolver     ReshareRequest[] @relation("ReshareResolver")
+  notifications        Notification[]
+  notificationSettings NotificationSettings?
+  pushTokens           PushToken[]
 
   @@map("users")
 }
@@ -404,4 +407,61 @@ enum ReshareRequestStatus {
   APPROVED @map("approved")
   REJECTED @map("rejected")
   @@map("reshare_request_status")
+}
+
+// ============================================================
+// M8 — Notifications
+// ============================================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?            @default("{}")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationSettings {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  pushEnabled         Boolean  @default(true) @map("push_enabled")
+  emailEnabled        Boolean  @default(true) @map("email_enabled")
+  reminderNoOpenDays  Int      @default(3) @map("reminder_no_open_days")
+  linkExpiryAlertDays Int      @default(7) @map("link_expiry_alert_days")
+  quietHoursStart     String?  @map("quiet_hours_start")
+  quietHoursEnd       String?  @map("quiet_hours_end")
+  disabledTypes       String[] @default([]) @map("disabled_types")
+  user User @relation(fields: [userId], references: [id])
+  @@map("notification_settings")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now()) @map("created_at")
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+enum NotificationType {
+  LINK_OPENED       @map("link_opened")
+  RESHARE_REQUESTED @map("reshare_requested")
+  RESHARE_APPROVED  @map("reshare_approved")
+  RESHARE_REJECTED  @map("reshare_rejected")
+  PARTNER_JOINED    @map("partner_joined")
+  LINK_EXPIRING     @map("link_expiring")
+  REMINDER_NO_OPEN  @map("reminder_no_open")
+  PROPERTY_VIEWED   @map("property_viewed")
+  SEND_FAILED       @map("send_failed")
+  @@map("notification_type")
 }

@@ -101,3 +101,22 @@ export function buildPartnerTestApp(
   partnerRoutes(app, controller);
   return app;
 }
+
+// ─── M8 Notification test app ───
+
+import { NotificationService } from '../../src/modules/notification/notification.service';
+import { NotificationController } from '../../src/modules/notification/notification.controller';
+import { notificationRoutes } from '../../src/modules/notification/notification.routes';
+import { ISettingsRepository, IPushTokenRepository } from '../../src/modules/notification/notification.types';
+
+export function buildNotificationTestApp(
+  service: NotificationService,
+  settingsRepo: ISettingsRepository,
+  pushTokenRepo: IPushTokenRepository,
+) {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  const controller = new NotificationController(service, settingsRepo, pushTokenRepo);
+  notificationRoutes(app, controller);
+  return app;
+}

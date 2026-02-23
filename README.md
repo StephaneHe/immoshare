@@ -305,6 +305,9 @@ All endpoints return a consistent JSON envelope:
 | `track_events` | M6 | Page view, section, time tracking events |
 | `partner_invites` | M7 | Partner invitation codes and partnerships |
 | `reshare_requests` | M7 | Property reshare approval workflow |
+| `notifications` | M8 | In-app notification records |
+| `notification_settings` | M8 | Per-user notification preferences |
+| `push_tokens` | M8 | FCM push token registry |
 
 ### Migrations
 
@@ -317,6 +320,7 @@ All endpoints return a consistent JSON envelope:
 | `20260222214341_add_sharing` | M5 contacts, share_links, share_batches + ShareChannel enum |
 | `20260223060008_add_tracking` | M6 track_events + TrackEventType enum |
 | `20260223171110_add_partners` | M7 partner_invites, reshare_requests + PartnerInviteStatus, ReshareRequestStatus enums |
+| `20260223181346_add_notifications` | M8 notifications, notification_settings, push_tokens + NotificationType enum |
 
 ### Status Workflow (Properties)
 

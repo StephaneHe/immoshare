@@ -38,6 +38,15 @@ import { ReshareService } from './modules/partner/reshare.service';
 import { PartnerController } from './modules/partner/partner.controller';
 import { partnerRoutes } from './modules/partner/partner.routes';
 import { PrismaPartnerInviteRepository, PrismaReshareRepository, PrismaPartnerDataProvider } from './modules/partner/partner.repository';
+import { NotificationService } from './modules/notification/notification.service';
+import { NotificationController } from './modules/notification/notification.controller';
+import { notificationRoutes } from './modules/notification/notification.routes';
+import {
+  PrismaNotificationRepository,
+  PrismaSettingsRepository,
+  PrismaPushTokenRepository,
+} from './modules/notification/notification.repository';
+import { FcmPushProvider } from './modules/notification/push.service';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request';
@@ -99,6 +108,24 @@ async function main() {
   const trackingController = new TrackingController(trackingService, analyticsService);
   trackingRoutes(app, trackingController);
 
+  // Wire M7 — Partners & Reshare
+  const partnerInviteRepo = new PrismaPartnerInviteRepository(prisma);
+  const reshareRepo = new PrismaReshareRepository(prisma);
+  const partnerDataProvider = new PrismaPartnerDataProvider(prisma);
+  const partnerInviteService = new PartnerInviteService(partnerInviteRepo, reshareRepo, partnerDataProvider);
+  const partnerCatalogService = new PartnerCatalogService(partnerInviteRepo, partnerDataProvider);
+  const reshareService = new ReshareService(reshareRepo, partnerInviteRepo, partnerDataProvider);
+  const partnerController = new PartnerController(partnerInviteService, partnerCatalogService, reshareService);
+  partnerRoutes(app, partnerController);
+
+  // Wire M8 — Notifications
+  const notifRepo = new PrismaNotificationRepository(prisma);
+  const settingsRepo = new PrismaSettingsRepository(prisma);
+  const pushTokenRepo = new PrismaPushTokenRepository(prisma);
+  const pushProvider = new FcmPushProvider();
+  const notificationService = new NotificationService(notifRepo, settingsRepo, pushTokenRepo, pushProvider);
+  const notificationController = new NotificationController(notificationService, settingsRepo, pushTokenRepo);
+  notificationRoutes(app, notificationController);
 
   // Graceful shutdown
   const shutdown = async () => {
