@@ -23,7 +23,7 @@
 | M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | `fba6f06` |
 | M6 | Tracking | ✅ Done | 22 | 11 | 33 | 5 | 1 | `1315b60` |
 | M7 | Partners | ✅ Done | 24 | 10 | 34 | 14 | 2 | `3c87c21` |
-| M8 | Notifications | ✅ Done | 14 | 11 | 25 | 9 | 3 | pending |
+| M8 | Notifications | ✅ Done | 14 | 11 | 25 | 9 | 3 | `384aae6` |
 | M9 | Branding | ⬜ Not started | — | — | — | — | — | — |
 
 ## Dependency Graph (Build Order)
