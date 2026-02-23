@@ -9,3 +9,6 @@ export {
   PrismaShareBatchRepository,
   PrismaShareDataProvider,
 } from './share.repository';
+
+export * from './share.types';
+export * from './share.errors';

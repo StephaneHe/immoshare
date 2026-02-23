@@ -16,7 +16,7 @@ function toRecord(p: any): PageRecord {
     propertyId: p.propertyId,
     brandingId: p.brandingId,
     title: p.title,
-    selectedElements: p.selectedElements as any,
+    selectedElements: p.selectedElements as unknown[],
     layout: p.layout,
     isActive: p.isActive,
     createdAt: p.createdAt,
@@ -32,7 +32,7 @@ export class PrismaPageRepository implements IPageRepository {
       data: {
         propertyId,
         title: data.title,
-        selectedElements: data.selectedElements as any,
+        selectedElements: data.selectedElements as Prisma.InputJsonValue,
         layout: data.layout || 'standard',
         brandingId: data.brandingId,
       },
@@ -58,7 +58,7 @@ export class PrismaPageRepository implements IPageRepository {
       where: { id },
       data: {
         ...(data.title !== undefined && { title: data.title }),
-        ...(data.selectedElements && { selectedElements: data.selectedElements as any }),
+        ...(data.selectedElements && { selectedElements: data.selectedElements as Prisma.InputJsonValue }),
         ...(data.layout && { layout: data.layout }),
         ...(data.brandingId !== undefined && { brandingId: data.brandingId }),
       },

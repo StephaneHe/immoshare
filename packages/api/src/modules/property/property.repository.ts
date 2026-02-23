@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, PropertyType as PrismaPropertyType, PropertyStatus as PrismaPropertyStatus } from '@prisma/client';
 import {
   IPropertyRepository,
   CreatePropertyInput,
@@ -9,9 +9,9 @@ import {
   PaginatedResult,
 } from './property.types';
 
-// ─── Enum mapping helpers ───
+// ─── Enum mapping helpers (typed with Prisma enums) ───
 
-const statusToPrisma: Record<string, string> = {
+const statusToPrisma: Record<string, PrismaPropertyStatus> = {
   draft: 'DRAFT', active: 'ACTIVE', under_offer: 'UNDER_OFFER',
   sold: 'SOLD', rented: 'RENTED', archived: 'ARCHIVED',
 };
@@ -21,7 +21,7 @@ const statusFromPrisma: Record<string, PropertyStatus> = {
   SOLD: 'sold', RENTED: 'rented', ARCHIVED: 'archived',
 };
 
-const typeToPrisma: Record<string, string> = {
+const typeToPrisma: Record<string, PrismaPropertyType> = {
   apartment: 'APARTMENT', house: 'HOUSE', penthouse: 'PENTHOUSE',
   duplex: 'DUPLEX', garden_apartment: 'GARDEN_APARTMENT', studio: 'STUDIO',
   villa: 'VILLA', cottage: 'COTTAGE', land: 'LAND',
@@ -32,7 +32,14 @@ const typeFromPrisma: Record<string, string> = Object.fromEntries(
   Object.entries(typeToPrisma).map(([k, v]) => [v, k]),
 );
 
-function toRecord(p: any): PropertyRecord {
+function toRecord(p: {
+  id: string; ownerId: string; agencyId: string | null;
+  title: string; description: string | null;
+  propertyType: string; status: string;
+  price: Prisma.Decimal | null; areaSqm: Prisma.Decimal | null;
+  rooms: number | null; currency: string;
+  [key: string]: unknown;
+}): PropertyRecord {
   return {
     ...p,
     propertyType: typeFromPrisma[p.propertyType] || p.propertyType,
@@ -40,7 +47,7 @@ function toRecord(p: any): PropertyRecord {
     price: p.price ? Number(p.price) : null,
     areaSqm: p.areaSqm ? Number(p.areaSqm) : null,
     rooms: p.rooms ? Number(p.rooms) : null,
-  };
+  } as PropertyRecord;
 }
 
 export class PrismaPropertyRepository implements IPropertyRepository {
@@ -53,7 +60,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
         agencyId: data.agencyId,
         title: data.title,
         description: data.description,
-        propertyType: typeToPrisma[data.propertyType] as any,
+        propertyType: typeToPrisma[data.propertyType],
         price: data.price,
         currency: data.currency,
         address: data.address,
@@ -72,7 +79,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
         garden: data.garden,
         aircon: data.aircon,
         furnished: data.furnished,
-        metadata: data.metadata as any,
+        metadata: data.metadata as Prisma.InputJsonValue ?? Prisma.JsonNull,
       },
     });
     return toRecord(p);
@@ -86,9 +93,22 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   }
 
   async update(id: string, data: UpdatePropertyInput): Promise<PropertyRecord> {
-    const prismaData: any = { ...data };
-    delete prismaData.propertyType;
-    if (data.propertyType) prismaData.propertyType = typeToPrisma[data.propertyType] as any;
+    const prismaData: Prisma.PropertyUpdateInput = {};
+
+    // Copy scalar fields (skip propertyType, handle separately)
+    const scalarKeys = [
+      'title', 'description', 'price', 'currency', 'address', 'city',
+      'neighborhood', 'areaSqm', 'rooms', 'bedrooms', 'bathrooms',
+      'floor', 'totalFloors', 'yearBuilt', 'parking', 'elevator',
+      'balcony', 'garden', 'aircon', 'furnished',
+    ] as const;
+    for (const key of scalarKeys) {
+      if (key in data && (data as Record<string, unknown>)[key] !== undefined) {
+        (prismaData as Record<string, unknown>)[key] = (data as Record<string, unknown>)[key];
+      }
+    }
+    if (data.propertyType) prismaData.propertyType = typeToPrisma[data.propertyType];
+    if (data.metadata !== undefined) prismaData.metadata = data.metadata as Prisma.InputJsonValue ?? Prisma.JsonNull;
 
     const p = await this.prisma.property.update({ where: { id }, data: prismaData });
     return toRecord(p);
@@ -97,7 +117,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   async updateStatus(id: string, status: PropertyStatus): Promise<PropertyRecord> {
     const p = await this.prisma.property.update({
       where: { id },
-      data: { status: statusToPrisma[status] as any },
+      data: { status: statusToPrisma[status] },
     });
     return toRecord(p);
   }
@@ -129,7 +149,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
         title: `${original.title} (copy)`,
         description: original.description,
         propertyType: original.propertyType,
-        status: 'DRAFT' as any,
+        status: PrismaPropertyStatus.DRAFT,
         price: original.price,
         currency: original.currency,
         address: original.address,
@@ -148,7 +168,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
         garden: original.garden,
         aircon: original.aircon,
         furnished: original.furnished,
-        metadata: original.metadata as any,
+        metadata: original.metadata ?? Prisma.JsonNull,
       },
     });
     return toRecord(p);
@@ -169,26 +189,29 @@ export class PrismaPropertyRepository implements IPropertyRepository {
 
     if (filters.ownerId) where.ownerId = filters.ownerId;
     if (filters.agencyId) where.agencyId = filters.agencyId;
-    if (filters.status) where.status = statusToPrisma[filters.status] as any;
-    if (filters.propertyType) where.propertyType = typeToPrisma[filters.propertyType] as any;
+    if (filters.status) where.status = statusToPrisma[filters.status];
+    if (filters.propertyType) where.propertyType = typeToPrisma[filters.propertyType];
     if (filters.city) where.city = { contains: filters.city, mode: 'insensitive' };
 
     if (filters.minPrice || filters.maxPrice) {
-      where.price = {};
-      if (filters.minPrice) (where.price as any).gte = filters.minPrice;
-      if (filters.maxPrice) (where.price as any).lte = filters.maxPrice;
+      const priceFilter: Prisma.DecimalNullableFilter = {};
+      if (filters.minPrice) priceFilter.gte = filters.minPrice;
+      if (filters.maxPrice) priceFilter.lte = filters.maxPrice;
+      where.price = priceFilter;
     }
 
     if (filters.minArea || filters.maxArea) {
-      where.areaSqm = {};
-      if (filters.minArea) (where.areaSqm as any).gte = filters.minArea;
-      if (filters.maxArea) (where.areaSqm as any).lte = filters.maxArea;
+      const areaFilter: Prisma.DecimalNullableFilter = {};
+      if (filters.minArea) areaFilter.gte = filters.minArea;
+      if (filters.maxArea) areaFilter.lte = filters.maxArea;
+      where.areaSqm = areaFilter;
     }
 
     if (filters.minRooms || filters.maxRooms) {
-      where.rooms = {};
-      if (filters.minRooms) (where.rooms as any).gte = filters.minRooms;
-      if (filters.maxRooms) (where.rooms as any).lte = filters.maxRooms;
+      const roomsFilter: Prisma.IntNullableFilter = {};
+      if (filters.minRooms) roomsFilter.gte = filters.minRooms;
+      if (filters.maxRooms) roomsFilter.lte = filters.maxRooms;
+      where.rooms = roomsFilter;
     }
 
     if (filters.search) {
