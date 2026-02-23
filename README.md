@@ -308,6 +308,7 @@ All endpoints return a consistent JSON envelope:
 | `notifications` | M8 | In-app notification records |
 | `notification_settings` | M8 | Per-user notification preferences |
 | `push_tokens` | M8 | FCM push token registry |
+| `branding_profiles` | M9 | Agent/agency branding customization |
 
 ### Migrations
 
@@ -321,6 +322,7 @@ All endpoints return a consistent JSON envelope:
 | `20260223060008_add_tracking` | M6 track_events + TrackEventType enum |
 | `20260223171110_add_partners` | M7 partner_invites, reshare_requests + PartnerInviteStatus, ReshareRequestStatus enums |
 | `20260223181346_add_notifications` | M8 notifications, notification_settings, push_tokens + NotificationType enum |
+| `20260223184418_add_branding` | M9 branding_profiles table |
 
 ### Status Workflow (Properties)
 

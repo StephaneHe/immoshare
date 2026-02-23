@@ -48,6 +48,7 @@ model User {
   notifications        Notification[]
   notificationSettings NotificationSettings?
   pushTokens           PushToken[]
+  brandingProfile   BrandingProfile?
 
   @@map("users")
 }
@@ -117,6 +118,7 @@ model Agency {
   admin      User           @relation("AgencyAdmin", fields: [adminId], references: [id])
   members    User[]         @relation("AgencyMembers")
   invites    AgencyInvite[]
+  brandingProfiles BrandingProfile[]
   properties Property[]
   @@map("agencies")
 }
@@ -464,4 +466,38 @@ enum NotificationType {
   PROPERTY_VIEWED   @map("property_viewed")
   SEND_FAILED       @map("send_failed")
   @@map("notification_type")
+}
+
+// ============================================================
+// M9 — Branding
+// ============================================================
+
+model BrandingProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  agencyId        String?  @map("agency_id")
+  isAgencyDefault Boolean  @default(false) @map("is_agency_default")
+  logoUrl         String?  @map("logo_url")
+  photoUrl        String?  @map("photo_url")
+  primaryColor    String   @default("#1A1A2E") @map("primary_color")
+  secondaryColor  String   @default("#16213E") @map("secondary_color")
+  accentColor     String   @default("#0F3460") @map("accent_color")
+  textColor       String   @default("#FFFFFF") @map("text_color")
+  fontFamily      String   @default("Assistant") @map("font_family")
+  displayName     String?  @map("display_name")
+  tagline         String?
+  contactPhone    String?  @map("contact_phone")
+  contactEmail    String?  @map("contact_email")
+  contactWebsite  String?  @map("contact_website")
+  contactWhatsapp String?  @map("contact_whatsapp")
+  socialFacebook  String?  @map("social_facebook")
+  socialInstagram String?  @map("social_instagram")
+  socialLinkedin  String?  @map("social_linkedin")
+  locale          String   @default("he")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  user   User    @relation(fields: [userId], references: [id])
+  agency Agency? @relation(fields: [agencyId], references: [id])
+  @@index([agencyId, isAgencyDefault])
+  @@map("branding_profiles")
 }

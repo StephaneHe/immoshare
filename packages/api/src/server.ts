@@ -47,6 +47,10 @@ import {
   PrismaPushTokenRepository,
 } from './modules/notification/notification.repository';
 import { FcmPushProvider } from './modules/notification/push.service';
+import { BrandingService } from './modules/branding/branding.service';
+import { BrandingController } from './modules/branding/branding.controller';
+import { brandingRoutes } from './modules/branding/branding.routes';
+import { PrismaBrandingRepository, PrismaBrandingDataProvider } from './modules/branding/branding.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request';
@@ -126,6 +130,13 @@ async function main() {
   const notificationService = new NotificationService(notifRepo, settingsRepo, pushTokenRepo, pushProvider);
   const notificationController = new NotificationController(notificationService, settingsRepo, pushTokenRepo);
   notificationRoutes(app, notificationController);
+
+  // Wire M9 — Branding
+  const brandingRepo = new PrismaBrandingRepository(prisma);
+  const brandingDataProvider = new PrismaBrandingDataProvider(prisma);
+  const brandingService = new BrandingService(brandingRepo, brandingDataProvider);
+  const brandingController = new BrandingController(brandingService);
+  brandingRoutes(app, brandingController);
 
   // Graceful shutdown
   const shutdown = async () => {

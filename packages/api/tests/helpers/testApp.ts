@@ -120,3 +120,17 @@ export function buildNotificationTestApp(
   notificationRoutes(app, controller);
   return app;
 }
+
+// ─── M9 Branding test app ───
+
+import { BrandingService } from '../../src/modules/branding/branding.service';
+import { BrandingController } from '../../src/modules/branding/branding.controller';
+import { brandingRoutes } from '../../src/modules/branding/branding.routes';
+
+export function buildBrandingTestApp(service: BrandingService): FastifyInstance {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  const controller = new BrandingController(service);
+  brandingRoutes(app, controller);
+  return app;
+}
