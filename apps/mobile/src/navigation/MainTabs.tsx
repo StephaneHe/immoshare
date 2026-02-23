@@ -7,6 +7,7 @@ import { colors } from '@/theme';
 // Screens — Properties
 import { PropertyListScreen } from '@/screens/Properties/PropertyListScreen';
 import { PropertyDetailScreen } from '@/screens/Properties/PropertyDetailScreen';
+import { PropertyCreateScreen } from '@/screens/Properties/PropertyCreateScreen';
 
 // Screens — Share
 import { ContactListScreen } from '@/screens/Share/ContactListScreen';
@@ -27,6 +28,7 @@ function PropertiesNavigator() {
     <PropertiesStack.Navigator>
       <PropertiesStack.Screen name="PropertyList" component={PropertyListScreen} options={{ title: 'My Properties' }} />
       <PropertiesStack.Screen name="PropertyDetail" component={PropertyDetailScreen} options={{ title: 'Property' }} />
+      <PropertiesStack.Screen name="PropertyCreate" component={PropertyCreateScreen} options={{ title: 'New Property' }} />
     </PropertiesStack.Navigator>
   );
 }
