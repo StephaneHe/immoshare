@@ -21,7 +21,7 @@
 | M3 | Properties | ✅ Done | 22 | 16 | 38 | 8 | 2 | `8543fca` |
 | M4 | Pages | ✅ Done | 29 | 12 | 41 | 6 | 1 | `e7b9e9a` |
 | M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | `fba6f06` |
-| M6 | Tracking | ✅ Done | 22 | 11 | 33 | 5 | 1 | pending |
+| M6 | Tracking | ✅ Done | 22 | 11 | 33 | 5 | 1 | `1315b60` |
 | M7 | Partners | ⬜ Not started | — | — | — | — | — | — |
 | M8 | Notifications | ⬜ Not started | — | — | — | — | — | — |
 | M9 | Branding | ⬜ Not started | — | — | — | — | — | — |
@@ -134,7 +134,7 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 - Analytics endpoints
 - Integration with ShareLink (view counting)
 
-#### M6 — Tracking & Analytics (pending commit)
+#### M6 — Tracking & Analytics (commit `1315b60`)
 
 **Scope:** Track page views, time spent, section engagement. Analytics per property and global dashboard.
 
