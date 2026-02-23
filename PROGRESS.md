@@ -20,7 +20,7 @@
 | M2 | Agencies | ✅ Done | 34 | 18 | 52 | 14 | 2 | `5f9df19` |
 | M3 | Properties | ✅ Done | 22 | 16 | 38 | 8 | 2 | `8543fca` |
 | M4 | Pages | ✅ Done | 29 | 12 | 41 | 6 | 1 | `e7b9e9a` |
-| M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | pending |
+| M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | `fba6f06` |
 | M6 | Tracking | ⬜ Not started | — | — | — | — | — | — |
 | M7 | Partners | ⬜ Not started | — | — | — | — | — | — |
 | M8 | Notifications | ⬜ Not started | — | — | — | — | — | — |
@@ -66,7 +66,7 @@ Property CRUD, status workflow, pagination + 10 filters, duplication, agency lis
 Page generator — SSR HTML engine for shareable property pages with 9 section types, media/field selection, RTL/LTR, branding, preview watermark.
 41 tests. Table: pages.
 
-#### M5 — Sharing (pending commit)
+#### M5 — Sharing (commit `fba6f06`)
 
 **Scope:** Multichannel sharing (WhatsApp, Email, SMS) with contacts management, unique share links per contact×channel, batch sharing, public page rendering, link deactivation/expiration.
 
@@ -111,7 +111,7 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 |-----------|--------|---------|
 | PostgreSQL | ✅ Running | Docker, port 5432, `immoshare` DB |
 | Prisma | ✅ Synced | 5 migrations applied, client v5.22 |
-| Git | ✅ Pushed | 6 commits on `main` (M5 pending) |
+| Git | ✅ Pushed | 7 commits on `main` |
 | CI/CD | ⬜ | Not configured yet |
 | Deployment | ⬜ | Planned: OVH VPS |
 
