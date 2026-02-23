@@ -27,6 +27,11 @@ import {
   PrismaShareBatchRepository,
   PrismaShareDataProvider,
 } from './modules/share/share.repository';
+import { TrackingService } from './modules/tracking/tracking.service';
+import { AnalyticsService } from './modules/tracking/analytics.service';
+import { TrackingController } from './modules/tracking/tracking.controller';
+import { trackingRoutes } from './modules/tracking/tracking.routes';
+import { PrismaTrackEventRepository, PrismaTrackingDataProvider } from './modules/tracking/tracking.repository';
 import { errorHandler } from './common/middleware/errorHandler';
 import { PrismaAuthRepository } from './modules/auth/auth.repository';
 import './common/types/request';
@@ -79,6 +84,14 @@ async function main() {
   const shareService = new ShareService(shareLinkRepo, shareBatchRepo, contactRepo, shareDataProvider);
   const shareController = new ShareController(shareService, pageService);
   shareRoutes(app, contactController, shareController);
+
+  // Wire M6 — Tracking & Analytics
+  const trackEventRepo = new PrismaTrackEventRepository(prisma);
+  const trackingDataProvider = new PrismaTrackingDataProvider(prisma);
+  const trackingService = new TrackingService(trackEventRepo, trackingDataProvider);
+  const analyticsService = new AnalyticsService(trackingDataProvider);
+  const trackingController = new TrackingController(trackingService, analyticsService);
+  trackingRoutes(app, trackingController);
 
   // Graceful shutdown
   const shutdown = async () => {

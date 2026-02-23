@@ -1,6 +1,6 @@
 // Prisma schema — ImmoShare
-// Modules: M1 Auth, M2 Agencies, M3 Properties, M4 Pages, M5 Sharing
-// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite, Property, Media, Page, Contact, ShareLink, ShareBatch
+// Modules: M1 Auth, M2 Agencies, M3 Properties, M4 Pages, M5 Sharing, M6 Tracking
+// Tables: User, RefreshToken, EmailVerification, PasswordReset, Agency, AgencyInvite, Property, Media, Page, Contact, ShareLink, ShareBatch, TrackEvent
 
 generator client {
   provider = "prisma-client-js"
@@ -289,8 +289,9 @@ model ShareLink {
   sentAt      DateTime?    @map("sent_at")
   deliveredAt DateTime?    @map("delivered_at")
   createdAt   DateTime     @default(now()) @map("created_at")
-  page    Page    @relation(fields: [pageId], references: [id])
-  contact Contact @relation(fields: [contactId], references: [id])
+  page        Page         @relation(fields: [pageId], references: [id])
+  contact     Contact      @relation(fields: [contactId], references: [id])
+  trackEvents TrackEvent[]
   @@index([token])
   @@index([pageId])
   @@index([contactId])
@@ -314,4 +315,33 @@ enum ShareChannel {
   EMAIL    @map("email")
   SMS      @map("sms")
   @@map("share_channel")
+}
+
+// ============================================================
+// M6 — Tracking & Analytics
+// ============================================================
+
+model TrackEvent {
+  id        String         @id @default(uuid())
+  linkId    String         @map("link_id")
+  eventType TrackEventType @map("event_type")
+  timestamp DateTime       @default(now())
+  ipAddress String?        @map("ip_address")
+  userAgent String?        @map("user_agent")
+  metadata  Json?          @default("{}")
+  createdAt DateTime       @default(now()) @map("created_at")
+  link ShareLink @relation(fields: [linkId], references: [id])
+  @@index([linkId])
+  @@index([eventType])
+  @@index([timestamp])
+  @@map("track_events")
+}
+
+enum TrackEventType {
+  PAGE_OPENED    @map("page_opened")
+  SECTION_VIEWED @map("section_viewed")
+  MEDIA_VIEWED   @map("media_viewed")
+  TIME_SPENT     @map("time_spent")
+  PAGE_CLOSED    @map("page_closed")
+  @@map("track_event_type")
 }

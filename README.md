@@ -177,7 +177,7 @@ All endpoints return a consistent JSON envelope:
 | M3 | Properties (CRUD, status, filters, duplicate) | ✅ Done | 38 | 8 |
 | M4 | Page Generator (SSR pages, renderer, preview) | ✅ Done | 41 | 6 |
 | M5 | Sharing (contacts, links, multichannel) | ✅ Done | 50 | 11 |
-| M6 | Tracking (views, clicks, analytics) | ⬜ | — | — |
+| M6 | Tracking (events, analytics, dashboard) | ✅ Done | 33 | 5 |
 | M7 | Partners (invitations, approvals) | ⬜ | — | — |
 | M8 | Notifications (push, email, reminders) | ⬜ | — | — |
 | M9 | Branding (logo, colors, agent identity) | ⬜ | — | — |
@@ -302,6 +302,7 @@ All endpoints return a consistent JSON envelope:
 | `contacts` | M5 | Agent contacts (phone, email, tags) |
 | `share_links` | M5 | Unique share tokens per contact × page × channel |
 | `share_batches` | M5 | Batch sharing records |
+| `track_events` | M6 | Page view, section, time tracking events |
 
 ### Migrations
 
@@ -312,6 +313,7 @@ All endpoints return a consistent JSON envelope:
 | `20260222210049_add_properties` | M3 tables + 3 enums |
 | `20260222211906_add_pages` | M4 pages table |
 | `20260222214341_add_sharing` | M5 contacts, share_links, share_batches + ShareChannel enum |
+| `20260223060008_add_tracking` | M6 track_events + TrackEventType enum |
 
 ### Status Workflow (Properties)
 
@@ -353,3 +355,25 @@ docker compose down -v       # Stop + delete data
 ## License
 
 Private — All rights reserved.
+
+### Tracking (M6) — 5 endpoints
+
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| POST | `/api/v1/track/event` | **No** (token) | Record tracking event |
+| POST | `/api/v1/track/heartbeat` | **No** (token) | Record time heartbeat |
+| GET | `/api/v1/share-links/:id/events` | Yes | List events for a link |
+| GET | `/api/v1/properties/:id/analytics` | Yes | Property analytics |
+| GET | `/api/v1/analytics/dashboard` | Yes | Global dashboard |
+
+#### Tracking Features
+
+- **IP anonymization** — last octet masked for GDPR compliance
+- **Deduplication** — page_opened within 5 min from same IP silently skipped
+- **Rate limiting** — 60 events/min per token (in-memory)
+- **firstVisit detection** — flag on first page_opened per link
+- **Property analytics** — open rate, avg time, channel/contact/section breakdown
+- **Dashboard** — period stats, recent activity, top properties by opens
+- **Event types** — page_opened, section_viewed, media_viewed, time_spent, page_closed
+
+**Tracking (M6):** Events recorded per ShareLink token. IP anonymized. Views deduplicated within 5 min. Analytics aggregated per property with open rate, time spent, channel breakdown, contact breakdown, and section ranking. Dashboard shows global activity summary.

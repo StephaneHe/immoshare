@@ -6,11 +6,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Modules completed | 5 / 9 |
-| Total tests | 257 |
-| Total endpoints | 47 |
-| Total DB tables | 12 |
-| Git commits | 7 |
+| Modules completed | 6 / 9 |
+| Total tests | 290 |
+| Total endpoints | 52 |
+| Total DB tables | 13 |
+| Git commits | 9 |
 
 ## Module Status
 
@@ -21,7 +21,7 @@
 | M3 | Properties | ✅ Done | 22 | 16 | 38 | 8 | 2 | `8543fca` |
 | M4 | Pages | ✅ Done | 29 | 12 | 41 | 6 | 1 | `e7b9e9a` |
 | M5 | Sharing | ✅ Done | 30 | 20 | 50 | 11 | 3 | `fba6f06` |
-| M6 | Tracking | ⬜ Not started | — | — | — | — | — | — |
+| M6 | Tracking | ✅ Done | 22 | 11 | 33 | 5 | 1 | pending |
 | M7 | Partners | ⬜ Not started | — | — | — | — | — | — |
 | M8 | Notifications | ⬜ Not started | — | — | — | — | — | — |
 | M9 | Branding | ⬜ Not started | — | — | — | — | — | — |
@@ -34,8 +34,8 @@ M1 Auth ✅
 │   └── M3 Properties ✅
 │       └── M4 Pages ✅
 │           └── M5 Sharing ✅
-│               └── M6 Tracking ← NEXT
-│                   └── M8 Notifications
+│               └── M6 Tracking ✅
+│                   └── M8 Notifications ← NEXT
 ├── M9 Branding
 └── M7 Partners (depends on M1, M2, M3)
 ```
@@ -111,7 +111,7 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 |-----------|--------|---------|
 | PostgreSQL | ✅ Running | Docker, port 5432, `immoshare` DB |
 | Prisma | ✅ Synced | 5 migrations applied, client v5.22 |
-| Git | ✅ Pushed | 7 commits on `main` |
+| Git | ✅ Pushed | 9 commits on `main` |
 | CI/CD | ⬜ | Not configured yet |
 | Deployment | ⬜ | Planned: OVH VPS |
 
@@ -133,3 +133,35 @@ Page generator — SSR HTML engine for shareable property pages with 9 section t
 - Page opened/viewed events
 - Analytics endpoints
 - Integration with ShareLink (view counting)
+
+#### M6 — Tracking & Analytics (pending commit)
+
+**Scope:** Track page views, time spent, section engagement. Analytics per property and global dashboard.
+
+**Files created (9 source + 3 test):**
+- `tracking.types.ts` — TrackEventRecord, PropertyAnalytics, Dashboard, ITrackEventRepository, ITrackingDataProvider
+- `tracking.errors.ts` — 6 error classes (link not found, expired, deactivated, rate limited, property not found, not owner)
+- `tracking.schemas.ts` — Zod: trackEvent, heartbeat, linkIdParam, propertyIdParam, dashboardQuery
+- `tracking.service.ts` — Event recording with IP anonymization, dedup within 5min, rate limiting (60/min/token), firstVisit detection
+- `analytics.service.ts` — PropertyAnalytics (open rate, by channel, by contact, top sections, avg time) + Dashboard (recent activity, top properties)
+- `tracking.controller.ts` — 5 handlers (2 public + 3 authenticated)
+- `tracking.routes.ts` — 5 routes
+- `tracking.repository.ts` — PrismaTrackEventRepository + PrismaTrackingDataProvider
+- `index.ts` — barrel export
+
+**Tests (33):**
+- `tests/unit/tracking/tracking.service.test.ts` — 12 unit tests (event recording, dedup, rate limit, IP anonymization, link validation)
+- `tests/unit/tracking/analytics.service.test.ts` — 10 unit tests (open rate, by channel, by contact, top sections, avg time, dashboard)
+- `tests/integration/tracking/tracking.routes.test.ts` — 11 integration tests (track event, heartbeat, analytics, dashboard, auth)
+
+**Prisma migration `add_tracking`:** track_events table + TrackEventType enum.
+
+**Key features:**
+- IP anonymization (mask last octet for GDPR compliance)
+- Deduplication of page_opened within 5 minutes (same IP + token)
+- In-memory rate limiting (60 events/min per token)
+- firstVisit flag on page_opened events
+- Property analytics: open rate, time spent, channel breakdown, contact breakdown, section ranking
+- Global dashboard: period stats, recent activity (last 20), top properties by opens
+- Public collection routes (no auth, token-based)
+- Authenticated consultation routes (ownership enforced)

@@ -67,3 +67,19 @@ export function buildShareTestApp(
   shareRoutes(app, contactController, shareController);
   return app;
 }
+
+import { TrackingService } from '../../src/modules/tracking/tracking.service';
+import { AnalyticsService } from '../../src/modules/tracking/analytics.service';
+import { TrackingController } from '../../src/modules/tracking/tracking.controller';
+import { trackingRoutes } from '../../src/modules/tracking/tracking.routes';
+
+export function buildTrackingTestApp(
+  trackingService: TrackingService,
+  analyticsService: AnalyticsService,
+): FastifyInstance {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  const controller = new TrackingController(trackingService, analyticsService);
+  trackingRoutes(app, controller);
+  return app;
+}
