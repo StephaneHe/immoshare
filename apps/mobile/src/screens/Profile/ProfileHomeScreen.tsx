@@ -7,6 +7,16 @@ import { colors, spacing, fontSize, borderRadius } from '@/theme';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileHome'>;
 
+/** Extract up to 2 initials from a full name string */
+function getInitials(name?: string | null): string {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+  return (parts[0]?.[0] ?? '?').toUpperCase();
+}
+
 export function ProfileHomeScreen({ navigation }: Props) {
   const { user, logout } = useAuthStore();
 
@@ -22,10 +32,10 @@ export function ProfileHomeScreen({ navigation }: Props) {
       <View style={styles.userCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
+            {getInitials(user?.name)}
           </Text>
         </View>
-        <Text style={styles.userName}>{user?.firstName} {user?.lastName}</Text>
+        <Text style={styles.userName}>{user?.name}</Text>
         <Text style={styles.userEmail}>{user?.email}</Text>
         <Text style={styles.userRole}>{user?.role}</Text>
       </View>

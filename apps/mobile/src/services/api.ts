@@ -12,6 +12,10 @@ type RequestOptions = {
   skipAuth?: boolean;
 };
 
+/**
+ * Backend API response envelope: { success: true, data: T } | { success: false, error: {...} }
+ * This client unwraps the envelope and returns T directly.
+ */
 class ApiClient {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -67,17 +71,23 @@ class ApiClient {
       throw new ApiError(401, 'SESSION_EXPIRED', 'Session expired');
     }
 
-    const data = await response.json();
+    const json = await response.json();
 
     if (!response.ok) {
       throw new ApiError(
         response.status,
-        data.error?.code || 'UNKNOWN_ERROR',
-        data.error?.message || 'An error occurred',
+        json.error?.code || 'UNKNOWN_ERROR',
+        json.error?.message || 'An error occurred',
       );
     }
 
-    return data as T;
+    // Unwrap backend envelope: { success: true, data: T } → T
+    if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+      return json.data as T;
+    }
+
+    // Fallback for endpoints that don't use the envelope
+    return json as T;
   }
 
   private async tryRefresh(): Promise<boolean> {
@@ -90,7 +100,9 @@ class ApiClient {
 
       if (!response.ok) return false;
 
-      const data = await response.json();
+      const json = await response.json();
+      // Unwrap envelope for refresh too
+      const data = json?.data ?? json;
       await this.setTokens(data.accessToken, data.refreshToken);
       return true;
     } catch {
