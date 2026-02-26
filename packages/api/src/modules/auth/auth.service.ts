@@ -263,6 +263,21 @@ export class AuthService {
     await this.repo.revokeAllRefreshTokens(user.id);
   }
 
+
+  // ---------------------------------------------------------------
+  // GET CURRENT USER
+  // ---------------------------------------------------------------
+  async getMe(userId: string): Promise<UserDto> {
+    const user = await this.repo.findUserById(userId);
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+    if (!user.isActive) {
+      throw new AccountDisabledError();
+    }
+    return toUserDto(user);
+  }
+
   // ---------------------------------------------------------------
   // CHANGE PASSWORD
   // ---------------------------------------------------------------

@@ -61,6 +61,15 @@ export class AuthController {
     reply.status(200).send(ok({ message: 'Password reset successfully' }));
   };
 
+
+  me = async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
+    const user = await this.service.getMe(request.user.sub);
+    reply.status(200).send(ok({ user }));
+  };
+
   changePassword = async (request: FastifyRequest, reply: FastifyReply) => {
     if (!request.user) {
       throw new UnauthorizedError('Authentication required');

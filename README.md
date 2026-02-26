@@ -76,12 +76,45 @@ npx expo start
 npx expo start --android
 ```
 
+#### Android Emulator (WSL2)
+
+When developing on WSL2, the emulator runs on Windows while the backend runs inside WSL. The mobile app must reach the backend via the WSL2 network bridge IP.
+
+```bash
+# 1. Create AVD in Android Studio → Virtual Device Manager
+#    Recommended: Pixel 3a, API 33 (x86_64), Google APIs
+
+# 2. Install Expo Go on the emulator
+#    Download APK from https://expo.dev/go or install via Play Store
+
+# 3. Get WSL2 IP address (run from WSL)
+ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1
+
+# 4. Set API URL for the mobile app (use WSL IP, not localhost)
+export EXPO_PUBLIC_API_URL=http://<WSL_IP>:3000
+
+# 5. Ensure backend listens on 0.0.0.0 (default in .env: HOST=0.0.0.0)
+```
+
+#### Running Everything Together
+
+```bash
+# Terminal 1 — Database
+docker compose up -d
+
+# Terminal 2 — Backend API
+cd packages/api && npx tsx watch src/server.ts
+
+# Terminal 3 — Metro bundler + Emulator
+cd apps/mobile && EXPO_PUBLIC_API_URL=http://<WSL_IP>:3000 npx expo start --android
+```
+
 ### Test Mobile
 
 ```bash
 cd apps/mobile
 
-# Run all tests (215 tests, 22 suites)
+# Run all tests (224 tests, 25 suites)
 npx jest
 
 # Watch mode
@@ -272,7 +305,7 @@ Legend: ✅ = service + store + screens, 🟡 = service + store (screens are pla
 | POST | `/api/v1/auth/logout` | Yes | Revoke refresh token |
 | POST | `/api/v1/auth/change-password` | Yes | Change password |
 
-> **Note:** `GET /api/v1/auth/me` is not yet implemented. Required for mobile session persistence.
+> **Note:** `GET /api/v1/auth/me` has been implemented (returns authenticated user profile).
 
 ### Agencies (M2) — 14 endpoints
 
