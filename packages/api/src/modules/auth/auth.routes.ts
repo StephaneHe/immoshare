@@ -16,6 +16,7 @@ export function authRoutes(app: FastifyInstance, controller: AuthController): vo
   app.post('/api/v1/auth/reset-password', controller.resetPassword);
 
   // Authenticated routes
+  app.get('/api/v1/auth/me', { preHandler: [authenticate] }, controller.me);
   app.post('/api/v1/auth/logout', { preHandler: [authenticate] }, controller.logout);
   app.post('/api/v1/auth/change-password', { preHandler: [authenticate] }, controller.changePassword);
 }

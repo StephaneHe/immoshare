@@ -231,11 +231,11 @@
 ### ContactListScreen (placeholder → to implement)
 | # | Test | Status |
 |---|------|--------|
-| M5-10 | Renders contact list | 🔴 |
+| M5-10 | Renders contact list | 🟢 |
 | M5-11 | Add contact form | 🔴 |
 | M5-12 | Edit contact inline | 🔴 |
 | M5-13 | Delete contact with confirmation | 🔴 |
-| M5-14 | Search/filter contacts | 🔴 |
+| M5-14 | Search/filter contacts | 🟢 |
 
 ### ShareCreateScreen (to implement)
 | # | Test | Status |
@@ -262,10 +262,10 @@
 ### TrackingDashboardScreen (placeholder → to implement)
 | # | Test | Status |
 |---|------|--------|
-| M6-04 | Renders dashboard stats (opens, unique visitors) | 🔴 |
-| M6-05 | Shows top properties by opens | 🔴 |
-| M6-06 | Shows recent activity feed | 🔴 |
-| M6-07 | Period selector works | 🔴 |
+| M6-04 | Renders dashboard stats (opens, unique visitors) | 🟢 |
+| M6-05 | Shows top properties by opens | 🟢 |
+| M6-06 | Shows recent activity feed | 🟢 |
+| M6-07 | Period selector works | 🟢 |
 
 ---
 
@@ -313,12 +313,12 @@
 ### NotificationListScreen (placeholder → to implement)
 | # | Test | Status |
 |---|------|--------|
-| M8-08 | Renders notification list | 🔴 |
+| M8-08 | Renders notification list | 🟢 |
 | M8-09 | Unread badge on tab | 🔴 |
 | M8-10 | Tap marks as read | 🔴 |
 | M8-11 | "Mark all read" button | 🔴 |
 | M8-12 | Swipe to delete | 🔴 |
-| M8-13 | Navigate to notification settings | 🔴 |
+| M8-13 | Navigate to notification settings | 🟢 |
 
 ---
 
@@ -339,10 +339,10 @@
 ### BrandingEditorScreen (placeholder → to implement)
 | # | Test | Status |
 |---|------|--------|
-| M9-07 | Renders current branding preview | 🔴 |
-| M9-08 | Color picker for primary/accent | 🔴 |
+| M9-07 | Renders current branding preview | 🟢 |
+| M9-08 | Color picker for primary/accent | 🟢 |
 | M9-09 | Logo upload via image picker | 🔴 |
-| M9-10 | Save updates branding | 🔴 |
+| M9-10 | Save updates branding | 🟢 |
 | M9-11 | Preview button shows rendered page | 🔴 |
 
 ---
