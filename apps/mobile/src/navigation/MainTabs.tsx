@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { MainTabParamList, PropertiesStackParamList, ShareStackParamList, NotificationsStackParamList, ProfileStackParamList } from './types';
 import { colors } from '@/theme';
 
@@ -93,11 +94,31 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 export function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textLight,
-      }}
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: React.ComponentProps<typeof Ionicons>['name'];
+          switch (route.name) {
+            case 'PropertiesTab':
+              iconName = focused ? 'home' : 'home-outline';
+              break;
+            case 'ShareTab':
+              iconName = focused ? 'share-social' : 'share-social-outline';
+              break;
+            case 'NotificationsTab':
+              iconName = focused ? 'notifications' : 'notifications-outline';
+              break;
+            case 'ProfileTab':
+              iconName = focused ? 'person' : 'person-outline';
+              break;
+            default:
+              iconName = 'ellipse-outline';
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
     >
       <Tab.Screen
         name="PropertiesTab"
