@@ -12,9 +12,16 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const { login, isLoading, error, clearError } = useAuthStore();
 
-  const handleLogin = () => {
+  // Must be async and awaited so that unhandled promise rejections
+  // don't crash the app with a global error screen.
+  const handleLogin = async () => {
     if (email && password) {
-      login(email, password);
+      try {
+        await login(email, password);
+      } catch {
+        // The store already sets error state in its own catch block.
+        // This outer catch prevents the unhandled rejection from crashing the app.
+      }
     }
   };
 
