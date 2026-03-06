@@ -14,9 +14,9 @@ export function RegisterScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const { register, isLoading, error, clearError } = useAuthStore();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (firstName && lastName && email && password) {
-      register({ firstName, lastName, email, password });
+      try { await register({ firstName, lastName, email, password }); } catch {}
     }
   };
 
