@@ -58,6 +58,7 @@ export function PropertyListScreen({ navigation }: Props) {
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
         data={STATUS_FILTERS}
         keyExtractor={(item) => item}
         contentContainerStyle={styles.filterRow}
