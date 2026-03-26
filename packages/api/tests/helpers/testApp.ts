@@ -134,3 +134,19 @@ export function buildBrandingTestApp(service: BrandingService): FastifyInstance 
   brandingRoutes(app, controller);
   return app;
 }
+
+// ─── Media test app ───
+
+import multipart from '@fastify/multipart';
+import { MediaService } from '../../src/modules/media/media.service';
+import { MediaController } from '../../src/modules/media/media.controller';
+import { mediaRoutes } from '../../src/modules/media/media.routes';
+
+export async function buildMediaTestApp(service: MediaService): Promise<FastifyInstance> {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler(errorHandler);
+  await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
+  const controller = new MediaController(service);
+  mediaRoutes(app, controller);
+  return app;
+}

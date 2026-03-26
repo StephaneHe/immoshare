@@ -1,7 +1,9 @@
 import Fastify from 'fastify';
+import multipart from '@fastify/multipart';
 import prisma from './common/prisma';
 import { errorHandler } from './common/middleware/errorHandler';
 import './common/types/request';
+import { MinioStorageService } from './common/storage/minio.storage';
 
 // Barrel imports — one per module
 import { AuthService, AuthController, authRoutes, PrismaAuthRepository } from './modules/auth';
@@ -13,6 +15,10 @@ import { TrackingService, AnalyticsService, TrackingController, trackingRoutes, 
 import { PartnerInviteService, PartnerCatalogService, ReshareService, PartnerController, partnerRoutes, PrismaPartnerInviteRepository, PrismaReshareRepository, PrismaPartnerDataProvider } from './modules/partner';
 import { NotificationService, NotificationController, notificationRoutes, FcmPushProvider, PrismaNotificationRepository, PrismaSettingsRepository, PrismaPushTokenRepository } from './modules/notification';
 import { BrandingService, BrandingController, brandingRoutes, PrismaBrandingRepository, PrismaBrandingDataProvider } from './modules/branding';
+import { MediaService, MediaController, mediaRoutes, PrismaMediaRepository, PrismaPropertyOwnershipChecker } from './modules/media';
+import { WhatsAppStubAdapter } from './modules/share/adapters/whatsapp-stub.adapter';
+import { SmsStubAdapter } from './modules/share/adapters/sms-stub.adapter';
+import { BrevoEmailAdapter } from './modules/share/adapters/brevo-email.adapter';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -23,6 +29,12 @@ async function main() {
   });
 
   app.setErrorHandler(errorHandler);
+
+  // Register multipart plugin for file uploads (10MB limit)
+  await app.register(multipart, {
+    limits: { fileSize: 10 * 1024 * 1024 },
+  });
+
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
   // Wire M1 — Auth
@@ -60,6 +72,12 @@ async function main() {
   const shareBatchRepo = new PrismaShareBatchRepository(prisma);
   const shareDataProvider = new PrismaShareDataProvider(prisma);
   const shareService = new ShareService(shareLinkRepo, shareBatchRepo, contactRepo, shareDataProvider);
+
+  // Register channel adapters
+  shareService.registerAdapter(new WhatsAppStubAdapter());
+  shareService.registerAdapter(new SmsStubAdapter());
+  shareService.registerAdapter(new BrevoEmailAdapter());
+
   const shareController = new ShareController(shareService, pageService);
   shareRoutes(app, contactController, shareController);
 
@@ -96,6 +114,14 @@ async function main() {
   const brandingService = new BrandingService(brandingRepo, brandingDataProvider);
   const brandingController = new BrandingController(brandingService);
   brandingRoutes(app, brandingController);
+
+  // Wire Media upload (MinIO-backed)
+  const storageService = new MinioStorageService();
+  const mediaRepo = new PrismaMediaRepository(prisma);
+  const ownershipChecker = new PrismaPropertyOwnershipChecker(prisma);
+  const mediaService = new MediaService(mediaRepo, storageService, ownershipChecker);
+  const mediaController = new MediaController(mediaService);
+  mediaRoutes(app, mediaController);
 
   // Graceful shutdown
   const shutdown = async () => {
