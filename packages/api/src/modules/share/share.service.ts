@@ -23,8 +23,13 @@ import {
 
 const BASE_URL = process.env.PUBLIC_URL || 'https://app.immoshare.com';
 
+export interface INotifier {
+  notify(userId: string, type: string, title: string, body: string, data?: Record<string, unknown>): Promise<unknown>;
+}
+
 export class ShareService {
   private adapters: Map<ShareChannel, IChannelAdapter> = new Map();
+  private notifier: INotifier | null = null;
 
   constructor(
     private readonly linkRepo: IShareLinkRepository,
@@ -32,6 +37,10 @@ export class ShareService {
     private readonly contactRepo: IContactRepository,
     private readonly dataProvider: IShareDataProvider,
   ) {}
+
+  setNotifier(notifier: INotifier): void {
+    this.notifier = notifier;
+  }
 
   registerAdapter(adapter: IChannelAdapter): void {
     this.adapters.set(adapter.channel, adapter);
@@ -121,6 +130,24 @@ export class ShareService {
       totalSent,
       totalFailed,
     });
+
+    // Notify agent about the share
+    if (this.notifier && totalSent > 0) {
+      const contactNames = [...new Set(
+        await Promise.all(request.recipients.map(async r => {
+          const c = await this.contactRepo.findById(r.contactId);
+          return c?.name || 'Unknown';
+        }))
+      )];
+      const channels = [...new Set(request.recipients.flatMap(r => r.channels))];
+      await this.notifier.notify(
+        userId,
+        'share_sent',
+        'Property shared',
+        `${totalSent} link(s) sent to ${contactNames.join(', ')} via ${channels.join(', ')}`,
+        { batchId: batch.id, pageId, totalSent, totalFailed },
+      ).catch(() => {}); // don't fail share if notification fails
+    }
 
     return {
       batchId: batch.id,

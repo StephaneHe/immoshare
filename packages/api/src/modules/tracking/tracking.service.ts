@@ -15,14 +15,23 @@ import {
 const DEDUP_WINDOW_MINUTES = 5;
 const RATE_LIMIT_PER_MINUTE = 60;
 
+export interface INotifier {
+  notify(userId: string, type: string, title: string, body: string, data?: Record<string, unknown>): Promise<unknown>;
+}
+
 export class TrackingService {
   // Simple in-memory rate limiter: token → timestamps[]
   private rateLimits: Map<string, number[]> = new Map();
+  private notifier: INotifier | null = null;
 
   constructor(
     private readonly repo: ITrackEventRepository,
     private readonly dataProvider: ITrackingDataProvider,
   ) {}
+
+  setNotifier(notifier: INotifier): void {
+    this.notifier = notifier;
+  }
 
   async recordEvent(input: CreateTrackEventInput, ipAddress: string | null, userAgent: string | null): Promise<TrackEventRecord | null> {
     // Resolve and validate link
@@ -50,13 +59,38 @@ export class TrackingService {
       metadata = { ...metadata, firstVisit: previousCount === 0 };
     }
 
-    return this.repo.create({
+    const event = await this.repo.create({
       linkId: link.id,
       eventType: input.eventType,
       ipAddress: anonIp,
       userAgent: userAgent || null,
       metadata,
     });
+
+    // Notify property owner when their link is opened
+    if (this.notifier && input.eventType === 'page_opened' && event) {
+      this.notifyLinkOpened(link, metadata).catch(() => {});
+    }
+
+    return event;
+  }
+
+  private async notifyLinkOpened(
+    link: { id: string; pageId: string; contactId: string },
+    metadata: Record<string, unknown>,
+  ): Promise<void> {
+    if (!this.notifier) return;
+    const ownerId = await this.dataProvider.getPageOwnerId(link.pageId);
+    if (!ownerId) return;
+    const contactName = await this.dataProvider.getContactName(link.contactId);
+    const isFirst = metadata.firstVisit === true;
+    await this.notifier.notify(
+      ownerId,
+      'link_opened',
+      isFirst ? 'New page view' : 'Page viewed again',
+      `${contactName || 'Someone'} opened your shared page`,
+      { linkId: link.id, pageId: link.pageId, contactId: link.contactId, firstVisit: isFirst },
+    );
   }
 
   async recordHeartbeat(input: HeartbeatInput, ipAddress: string | null, userAgent: string | null): Promise<TrackEventRecord | null> {

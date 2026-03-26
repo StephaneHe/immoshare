@@ -15,8 +15,10 @@ export class PrismaNotificationRepository implements INotificationRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateNotificationInput): Promise<NotificationRecord> {
+    // Convert snake_case type (e.g. 'share_sent') to UPPER_SNAKE (e.g. 'SHARE_SENT') for Prisma enum
+    const prismaType = data.type.toUpperCase();
     const r = await this.prisma.notification.create({ data: {
-      userId: data.userId, type: data.type as any,
+      userId: data.userId, type: prismaType as any,
       title: data.title, body: data.body, data: data.data as any,
     }});
     return this.toNotif(r);

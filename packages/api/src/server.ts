@@ -78,6 +78,7 @@ async function main() {
   shareService.registerAdapter(new SmsStubAdapter());
   shareService.registerAdapter(new BrevoEmailAdapter());
 
+  // Notifier will be injected after NotificationService is created (below)
   const shareController = new ShareController(shareService, pageService);
   shareRoutes(app, contactController, shareController);
 
@@ -107,6 +108,10 @@ async function main() {
   const notificationService = new NotificationService(notifRepo, settingsRepo, pushTokenRepo, pushProvider);
   const notificationController = new NotificationController(notificationService, settingsRepo, pushTokenRepo);
   notificationRoutes(app, notificationController);
+
+  // Wire notification triggers — inject notifier into share & tracking
+  shareService.setNotifier(notificationService);
+  trackingService.setNotifier(notificationService);
 
   // Wire M9 — Branding
   const brandingRepo = new PrismaBrandingRepository(prisma);

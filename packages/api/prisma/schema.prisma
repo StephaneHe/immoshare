@@ -465,6 +465,7 @@ enum NotificationType {
   REMINDER_NO_OPEN  @map("reminder_no_open")
   PROPERTY_VIEWED   @map("property_viewed")
   SEND_FAILED       @map("send_failed")
+  SHARE_SENT        @map("share_sent")
   @@map("notification_type")
 }
 

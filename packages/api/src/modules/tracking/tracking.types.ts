@@ -143,6 +143,7 @@ export interface ITrackingDataProvider {
 
   // Ownership
   getPropertyOwnerId(propertyId: string): Promise<string | null>;
+  getPageOwnerId(pageId: string): Promise<string | null>;
 
   // Analytics: events for a set of link IDs
   getEventsForLinks(linkIds: string[]): Promise<TrackEventRecord[]>;
