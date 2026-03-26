@@ -118,8 +118,16 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// --- Silence RN Animated warnings in tests ---
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
+// --- NativeEventEmitter mock (required for RN 0.76+ Keyboard) ---
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
+  return jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeAllListeners: jest.fn(),
+    removeSubscription: jest.fn(),
+    listeners: jest.fn(() => []),
+    emit: jest.fn(),
+  }));
+});
 
 // --- Global fetch mock ---
 global.fetch = jest.fn();
