@@ -16,10 +16,12 @@ export class PrismaTrackEventRepository implements ITrackEventRepository {
     userAgent: string | null;
     metadata: Record<string, any>;
   }): Promise<TrackEventRecord> {
+    // Convert snake_case eventType to UPPER_SNAKE for Prisma enum
+    const prismaEventType = data.eventType.toUpperCase();
     const record = await this.prisma.trackEvent.create({
       data: {
         linkId: data.linkId,
-        eventType: data.eventType,
+        eventType: prismaEventType as any,
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
         metadata: data.metadata as any,
@@ -42,7 +44,7 @@ export class PrismaTrackEventRepository implements ITrackEventRepository {
       where: {
         linkId,
         ipAddress,
-        eventType: 'page_opened',
+        eventType: 'PAGE_OPENED' as any,
         timestamp: { gte: since },
       },
       orderBy: { timestamp: 'desc' },
@@ -52,7 +54,7 @@ export class PrismaTrackEventRepository implements ITrackEventRepository {
 
   async countByType(linkId: string, eventType: TrackEventType): Promise<number> {
     return this.prisma.trackEvent.count({
-      where: { linkId, eventType },
+      where: { linkId, eventType: eventType.toUpperCase() as any },
     });
   }
 
@@ -146,6 +148,14 @@ export class PrismaTrackingDataProvider implements ITrackingDataProvider {
       select: { ownerId: true },
     });
     return prop?.ownerId || null;
+  }
+
+  async getPageOwnerId(pageId: string): Promise<string | null> {
+    const page = await this.prisma.page.findUnique({
+      where: { id: pageId },
+      select: { property: { select: { ownerId: true } } },
+    });
+    return page?.property?.ownerId || null;
   }
 
   async getEventsForLinks(linkIds: string[]): Promise<TrackEventRecord[]> {
