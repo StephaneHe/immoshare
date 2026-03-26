@@ -60,6 +60,7 @@ function mockDataProvider(overrides: Partial<ITrackingDataProvider> = {}): ITrac
       { propertyId: PROP_ID, title: 'Nice apartment', linkCount: 3 },
     ]),
     getPropertyOwnerId: jest.fn().mockResolvedValue(USER_ID),
+    getPageOwnerId: jest.fn().mockResolvedValue(USER_ID),
     getEventsForLinks: jest.fn().mockResolvedValue(events),
     ...overrides,
   };

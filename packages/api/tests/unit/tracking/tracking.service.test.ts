@@ -45,6 +45,7 @@ function mockDataProvider(overrides: Partial<ITrackingDataProvider> = {}): ITrac
     getPropertyTitle: jest.fn().mockResolvedValue('Nice apt'),
     getUserSharedProperties: jest.fn().mockResolvedValue([]),
     getPropertyOwnerId: jest.fn().mockResolvedValue('owner-1'),
+    getPageOwnerId: jest.fn().mockResolvedValue('owner-1'),
     getEventsForLinks: jest.fn().mockResolvedValue([]),
     ...overrides,
   };
