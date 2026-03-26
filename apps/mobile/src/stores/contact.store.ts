@@ -43,7 +43,7 @@ export const useContactStore = create<ContactState>((set, get) => ({
         search: get().search || undefined,
       });
       set({
-        contacts: page === 1 ? result.contacts : [...get().contacts, ...result.contacts],
+        contacts: page === 1 ? (result.contacts || []) : [...get().contacts, ...(result.contacts || [])],
         total: result.total,
         page: result.page,
         totalPages: result.totalPages,

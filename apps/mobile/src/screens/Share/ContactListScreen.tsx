@@ -89,7 +89,7 @@ export function ContactListScreen({ navigation }: Props) {
             </View>
           ) : null
         }
-        contentContainerStyle={contacts.length === 0 ? styles.emptyContainer : undefined}
+        contentContainerStyle={!contacts || contacts.length === 0 ? styles.emptyContainer : undefined}
       />
 
       {isLoading && !refreshing && (

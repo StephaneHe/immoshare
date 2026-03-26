@@ -20,4 +20,11 @@ config.resolver.nodeModulesPaths = [
 // 3. Enable symlink support (Metro 0.80+)
 config.resolver.unstable_enableSymlinks = true;
 
+// 4. Force React to resolve from apps/mobile/node_modules (avoid root 18.2.0)
+config.resolver.extraNodeModules = {
+  react: path.resolve(projectRoot, 'node_modules/react'),
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+  'react-dom': path.resolve(projectRoot, 'node_modules/react-dom'),
+};
+
 module.exports = config;
