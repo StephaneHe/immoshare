@@ -46,7 +46,14 @@ export const contactService = {
     if (params.limit) query.set('limit', String(params.limit));
     if (params.search) query.set('search', params.search);
     const qs = query.toString();
-    return api.get<ContactListResponse>(`/api/v1/contacts${qs ? `?${qs}` : ''}`);
+    const raw = await api.get<any>(`/api/v1/contacts${qs ? `?${qs}` : ''}`);
+    // API returns { items, total, page, totalPages } — map items → contacts
+    return {
+      contacts: raw.items || raw.contacts || [],
+      total: raw.total ?? 0,
+      page: raw.page ?? 1,
+      totalPages: raw.totalPages ?? 0,
+    };
   },
 
   async getById(id: string): Promise<Contact> {
