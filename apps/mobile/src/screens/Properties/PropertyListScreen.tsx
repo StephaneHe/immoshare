@@ -9,7 +9,7 @@ import { colors, spacing, fontSize, borderRadius } from '@/theme';
 
 type Props = NativeStackScreenProps<PropertiesStackParamList, 'PropertyList'>;
 
-const STATUS_FILTERS: (PropertyStatus | 'all')[] = ['all', 'active', 'draft', 'under_offer', 'sold', 'rented', 'archived'];
+const STATUS_FILTERS: (PropertyStatus | 'all')[] = ['all', 'draft', 'active', 'under_offer', 'sold', 'rented', 'archived'];
 
 export function PropertyListScreen({ navigation }: Props) {
   const { properties, total, isLoading, error, fetchProperties, fetchNextPage, clearError } = usePropertyStore();
