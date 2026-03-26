@@ -17,5 +17,39 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    container_name: immoshare-minio
+    restart: unless-stopped
+    ports:
+      - '9000:9000'   # S3 API
+      - '9001:9001'   # Web console
+    environment:
+      MINIO_ROOT_USER: immoshare
+      MINIO_ROOT_PASSWORD: immoshare123
+    command: server /data --console-address ":9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO bucket initialiser (runs once then exits)
+  minio-init:
+    image: minio/mc:latest
+    container_name: immoshare-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 immoshare immoshare123 &&
+        mc mb --ignore-existing local/immoshare-media &&
+        mc anonymous set download local/immoshare-media/public
+      "
+
 volumes:
   pgdata:
+  miniodata:

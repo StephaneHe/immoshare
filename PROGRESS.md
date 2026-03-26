@@ -237,3 +237,33 @@ All 22 screens connected in MainTabs.tsx across 4 tab stacks (Properties, Share,
 8. **🌐 Deployment** — OVH VPS with Docker Compose production setup.
 9. **🔒 Security audit** — Rate limiting, CORS, input validation hardening.
 10. **📊 Monitoring** — Logging, error tracking, health checks.
+
+---
+
+### 2026-03-05 — Phase 2 Step 1: Media Integration Tests
+
+#### Media module integration tests
+- Created `tests/integration/media/media.routes.test.ts` (24 tests)
+- Created `buildMediaTestApp` helper in `tests/helpers/testApp.ts`
+- Fixed broken `ts-jest` installation (missing `dist/` folder — restored from npm tarball)
+
+#### Coverage: 5 routes × scenarios
+- `POST /properties/:propertyId/media` — upload, 401, 400 (no file), 400 (bad type/too large/limit), 403
+- `GET /properties/:propertyId/media` — list, 401, 403
+- `PATCH /media/:mediaId/caption` — update, 401, 400 (too long), 404, 403
+- `PUT /properties/:propertyId/media/order` — reorder, 401, 400 (empty), 403
+- `DELETE /media/:mediaId` — delete, 401, 404, 403
+
+#### Final Status
+- **28 test suites, 429 tests — all GREEN** (was 376, +53)
+- ts-jest restored via `npm pack ts-jest@29.4.6` + manual dist extraction
+
+#### Infrastructure
+| Component | Status |
+|-----------|--------|
+| MinIO     | ✅ Running (immoshare-media bucket) |
+| Brevo     | ✅ Configured + tested (stephane.hercot@gmail.com) |
+
+#### What's still needed in Phase 2
+- WhatsApp Cloud API (currently stub)
+- Twilio SMS (currently stub)
