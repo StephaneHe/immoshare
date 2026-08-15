@@ -1,0 +1,4 @@
+# Maestro suite config: only run the top-level scenario flows.
+# The building blocks in subflows/ are included via `runFlow:` and must not run standalone.
+flows:
+  - "*.yaml"
