@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/auth.store';
 import { colors, spacing, fontSize, borderRadius } from '@/theme';
+import { APP_VERSION } from '@/constants/version';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -28,7 +29,13 @@ export function LoginScreen({ navigation }: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // On Android the window already resizes via windowSoftInputMode="adjustResize".
+      // Using behavior="height" here makes KeyboardAvoidingView animate the container
+      // height at the same time, so the layout is resized twice per keyboard frame and
+      // oscillates — a continuous shake/flicker visible on physical devices (where the
+      // keyboard slides in with animation) but not on emulators. Let the native resize
+      // handle Android; only iOS needs the JS behavior.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.header}>
         <Text style={styles.logo}>ImmoShare</Text>
@@ -81,6 +88,8 @@ export function LoginScreen({ navigation }: Props) {
           <Text style={styles.footerLink}>Sign Up</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.version}>v{APP_VERSION}</Text>
     </KeyboardAvoidingView>
   );
 }
@@ -161,5 +170,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: fontSize.sm,
     fontWeight: '600',
+  },
+  version: {
+    textAlign: 'center',
+    color: colors.textSecondary,
+    fontSize: fontSize.xs,
+    marginTop: spacing.lg,
+    opacity: 0.6,
   },
 });

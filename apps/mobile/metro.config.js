@@ -8,7 +8,7 @@ const monorepoRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// 1. Watch the entire monorepo
+// 1. Watch the monorepo root so hoisted node_modules + workspace packages resolve during bundling.
 config.watchFolders = [monorepoRoot];
 
 // 2. Let Metro resolve from both local and root node_modules
@@ -26,5 +26,13 @@ config.resolver.extraNodeModules = {
   'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
   'react-dom': path.resolve(projectRoot, 'node_modules/react-dom'),
 };
+
+// 5. Pin the Metro server root to the app dir. In a pnpm workspace Metro otherwise
+//    derives the server root from the workspace root (where pnpm-workspace.yaml lives),
+//    and then resolves the release `export:embed` entry (`--entry-file index.js`, passed
+//    relative by the RN Gradle plugin) against the monorepo root instead of apps/mobile,
+//    which fails the release APK build ("Unable to resolve module ./index.js").
+config.server = config.server || {};
+config.server.unstable_serverRoot = projectRoot;
 
 module.exports = config;
