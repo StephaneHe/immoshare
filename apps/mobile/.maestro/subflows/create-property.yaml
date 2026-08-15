@@ -1,0 +1,17 @@
+# Reusable: creates a property with a unique title (stored in ${output.title}).
+# Assumes we are logged in and on the Properties tab. Leaves the app on the
+# newly created property's detail screen.
+appId: com.immoshare.app
+---
+- tapOn: "+"
+- assertVisible: "Title *"
+- evalScript: ${output.title = 'E2E ' + Math.floor(Math.random() * 1000000)}
+- tapOn: "e.g. Sunny 3BR in Ramat Aviv"
+- inputText: ${output.title}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Create Property"
+    direction: DOWN
+- tapOn: "Create Property"
+- assertVisible: ${output.title}
