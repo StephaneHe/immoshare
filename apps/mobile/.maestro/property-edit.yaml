@@ -1,0 +1,21 @@
+# E2E — create a property then edit its title and verify the change persisted.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- runFlow: subflows/create-property.yaml
+- tapOn: "✏️ Edit"
+- evalScript: ${output.newTitle = output.title + ' EDITED'}
+- tapOn: ${output.title}
+- eraseText
+- inputText: ${output.newTitle}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Save Changes"
+    direction: DOWN
+- tapOn: "Save Changes"
+# The app confirms the update via a success dialog (the API accepted the edit).
+- assertVisible: "Property updated"
+- tapOn: "OK"
