@@ -1,0 +1,15 @@
+# E2E — wrong password is rejected by the real API and the app stays on Login.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Sign In"
+- tapOn: "Email"
+- inputText: "sophie@demo.com"
+- tapOn: "Password"
+- inputText: "WRONGpass"
+- hideKeyboard
+- tapOn: "Sign In"
+- assertVisible: "Invalid email or password"
+- assertVisible: "Sign In"
+- assertNotVisible: "My Properties"
