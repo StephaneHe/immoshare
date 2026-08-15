@@ -1,0 +1,18 @@
+# E2E — create a property then delete it (confirm dialog) and verify it is gone
+# from the list.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- runFlow: subflows/create-property.yaml
+- scrollUntilVisible:
+    element:
+      text: "Actions"
+    direction: DOWN
+- tapOn: "🗑️ Delete"
+- assertVisible: "This action cannot be undone. Are you sure?"
+- tapOn:
+    text: "^Delete$"
+- assertVisible: "My Properties"
+- assertNotVisible: ${output.title}
