@@ -5,6 +5,8 @@ import { errorHandler } from './common/middleware/errorHandler';
 import './common/types/request';
 import { MinioStorageService } from './common/storage/minio.storage';
 
+const APP_VERSION = '0.1.0';
+
 // Barrel imports — one per module
 import { AuthService, AuthController, authRoutes, PrismaAuthRepository } from './modules/auth';
 import { AgencyService, AgencyInviteService, AgencyController, agencyRoutes, PrismaAgencyRepository, PrismaAgencyInviteRepository } from './modules/agency';
@@ -36,6 +38,8 @@ async function main() {
   });
 
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
+  app.get('/isAlive', async () => ({ ok: true, service: 'immo-share', ts: Date.now() }));
+  app.get('/api/version', async () => ({ version: APP_VERSION, service: 'immo-share-api' }));
 
   // Wire M1 — Auth
   const authRepo = new PrismaAuthRepository(prisma);

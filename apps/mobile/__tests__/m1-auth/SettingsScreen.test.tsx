@@ -14,6 +14,7 @@ const mockLogout = jest.fn();
 const mockUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthStore>;
 
 import { SettingsScreen } from '../../src/screens/Profile/SettingsScreen';
+import { APP_VERSION } from '../../src/constants/version';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -40,9 +41,9 @@ describe('SettingsScreen', () => {
     expect(getByText('Help & Support')).toBeTruthy();
   });
 
-  it('renders App Version', () => {
+  it('renders the app version footer', () => {
     const { getByText } = render(<SettingsScreen />);
-    expect(getByText('App Version')).toBeTruthy();
+    expect(getByText(/^ImmoShare v/)).toBeTruthy();
   });
 
   it('renders Danger Zone section', () => {
@@ -94,11 +95,8 @@ describe('SettingsScreen', () => {
     spy.mockRestore();
   });
 
-  it('tap App Version shows version alert', () => {
-    const spy = jest.spyOn(Alert, 'alert');
+  it('version footer reflects the APP_VERSION constant', () => {
     const { getByText } = render(<SettingsScreen />);
-    fireEvent.press(getByText('App Version'));
-    expect(spy).toHaveBeenCalledWith('Version', 'ImmoShare v1.0.0');
-    spy.mockRestore();
+    expect(getByText(`ImmoShare v${APP_VERSION}`)).toBeTruthy();
   });
 });

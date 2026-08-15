@@ -23,6 +23,7 @@ export type PropertiesStackParamList = {
 export type ShareStackParamList = {
   ContactList: undefined;
   ContactDetail: { id: string };
+  ContactCreate: undefined;
   ShareCreate: { pageId?: string };
   ShareHistory: undefined;
   TrackingDashboard: undefined;
