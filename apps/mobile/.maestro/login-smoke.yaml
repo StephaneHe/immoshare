@@ -1,0 +1,50 @@
+# E2E smoke test — real app ↔ API ↔ DB login + tab navigation.
+#
+# PREREQUISITES (this drives the REAL installed app against the REAL backend):
+#   1. The app is installed on the target device:  com.immoshare.app (>= 0.1.2,
+#      built with EXPO_PUBLIC_API_URL pointing at a reachable host, cleartext enabled).
+#   2. The backend API is UP and reachable from the device at the baked URL
+#      (Tailscale host http://100.113.178.120:3000). Start it with:
+#        cd packages/api && PRISMA_HIDE_UPDATE_MESSAGE=1 npx tsx src/server.ts
+#      and make sure the docker DB (postgres :5433) is running.
+#   3. A physical device / emulator is connected (adb `device`), e.g. the V30T
+#      (serial V30T000000000012908).
+#   4. Demo account exists: sophie@demo.com / Demo12345 (role agent).
+#
+# Run:  maestro test apps/mobile/.maestro/login-smoke.yaml
+appId: com.immoshare.app
+---
+# Fresh start every run (logs out any previous session).
+- launchApp:
+    clearState: true
+
+# --- Login screen loaded ---
+- assertVisible: "ImmoShare"
+- assertVisible: "Sign In"
+
+# --- Fill credentials and sign in ---
+- tapOn: "Email"
+- inputText: "sophie@demo.com"
+- tapOn: "Password"
+- inputText: "Demo12345"
+- hideKeyboard
+- tapOn: "Sign In"
+
+# --- Post-login landing (Properties tab) proves app ↔ API ↔ DB round-trip ---
+- assertVisible: "My Properties"
+
+# --- Profile tab shows the authenticated user from the API ---
+- tapOn: "Profile"
+- assertVisible: "Sophie Martin"
+- assertVisible: "sophie@demo.com"
+- assertVisible: "AGENT"
+
+# --- Other tabs render ---
+- tapOn: "Share"
+- assertVisible: "Contacts & Shares"
+- tapOn: "Alerts"
+- assertVisible: "Notifications"
+
+# --- Back to Properties ---
+- tapOn: "Properties"
+- assertVisible: "My Properties"

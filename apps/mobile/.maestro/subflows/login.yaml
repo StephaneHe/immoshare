@@ -1,0 +1,12 @@
+# Reusable login sub-flow (assumes the app is already launched on the Login screen).
+# Used by the scenario flows via `runFlow: subflows/login.yaml`.
+appId: com.immoshare.app
+---
+- assertVisible: "Sign In"
+- tapOn: "Email"
+- inputText: "sophie@demo.com"
+- tapOn: "Password"
+- inputText: "Demo12345"
+- hideKeyboard
+- tapOn: "Sign In"
+- assertVisible: "My Properties"
