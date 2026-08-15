@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { useAuthStore } from '@/stores/auth.store';
 import { colors, spacing, fontSize, borderRadius } from '@/theme';
+import { APP_VERSION } from '@/constants/version';
 
 export function SettingsScreen() {
   const { logout } = useAuthStore();
@@ -23,7 +24,6 @@ export function SettingsScreen() {
     { label: 'Privacy Policy', icon: '🔒', onPress: () => Linking.openURL('https://immoshare.com/privacy') },
     { label: 'Terms of Service', icon: '📄', onPress: () => Linking.openURL('https://immoshare.com/terms') },
     { label: 'Help & Support', icon: '❓', onPress: () => Linking.openURL('mailto:support@immoshare.com') },
-    { label: 'App Version', icon: 'ℹ️', onPress: () => Alert.alert('Version', 'ImmoShare v1.0.0') },
   ];
 
   return (
@@ -47,6 +47,8 @@ export function SettingsScreen() {
           <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.version}>ImmoShare v{APP_VERSION}</Text>
     </View>
   );
 }
@@ -64,4 +66,5 @@ const styles = StyleSheet.create({
   deleteText: { color: colors.error, fontWeight: '600' },
   logoutButton: { padding: spacing.md, backgroundColor: colors.surface, borderRadius: borderRadius.md, alignItems: 'center', borderWidth: 1, borderColor: colors.border },
   logoutText: { color: colors.text, fontWeight: '600' },
+  version: { textAlign: 'center', color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.lg, opacity: 0.6 },
 });

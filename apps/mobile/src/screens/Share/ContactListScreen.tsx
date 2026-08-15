@@ -70,7 +70,15 @@ export function ContactListScreen({ navigation }: Props) {
         onChangeText={handleSearch}
         placeholderTextColor={colors.textLight}
       />
-      <Text style={styles.resultCount}>{total} contact{total !== 1 ? 's' : ''}</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.resultCount}>{total} contact{total !== 1 ? 's' : ''}</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('ContactCreate')}
+        >
+          <Text style={styles.addButtonText}>+ Add Contact</Text>
+        </TouchableOpacity>
+      </View>
 
       {error && <Text style={styles.errorBanner}>{error}</Text>}
 
@@ -114,7 +122,10 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
     fontSize: fontSize.md, color: colors.text,
   },
-  resultCount: { paddingHorizontal: spacing.md, color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.xs },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.md, marginBottom: spacing.xs },
+  resultCount: { color: colors.textSecondary, fontSize: fontSize.sm },
+  addButton: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm, borderRadius: borderRadius.md, backgroundColor: colors.primaryLight },
+  addButtonText: { color: colors.primary, fontSize: fontSize.sm, fontWeight: '600' },
   errorBanner: { margin: spacing.md, padding: spacing.sm, backgroundColor: colors.errorLight, color: colors.error, borderRadius: borderRadius.sm, textAlign: 'center' },
   card: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
   avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center', marginRight: spacing.md },
