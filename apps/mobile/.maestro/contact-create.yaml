@@ -1,0 +1,26 @@
+# E2E — create a contact through the new "Add Contact" screen (real write to
+# Postgres) and verify it appears in the contact list. Unique name per run.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- tapOn: "Share"
+- assertVisible: "Contacts & Shares"
+- tapOn: "+ Add Contact"
+- assertVisible: "Name *"
+- evalScript: ${output.cname = 'E2E Contact ' + Math.floor(Math.random() * 1000000)}
+- tapOn: "Full name"
+- inputText: ${output.cname}
+- tapOn: "name@example.com"
+- inputText: "e2e@example.com"
+- tapOn: "Phone number"
+- inputText: "+972500000000"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Add Contact"
+    direction: DOWN
+- tapOn: "Add Contact"
+# Back on the contact list — the new contact appears (store prepends it).
+- assertVisible: ${output.cname}
