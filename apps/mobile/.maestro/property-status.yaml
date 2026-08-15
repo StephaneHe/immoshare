@@ -1,0 +1,13 @@
+# E2E — create a (draft) property then change its status to Active via the
+# confirm dialog. The "Under Offer" transition only exists once the property is
+# Active, so asserting it proves the status change persisted.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- runFlow: subflows/create-property.yaml
+- assertVisible: "Change Status"
+- tapOn: "Active"
+- tapOn: "Confirm"
+- assertVisible: "Under Offer"
