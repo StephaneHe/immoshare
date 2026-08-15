@@ -1,0 +1,30 @@
+# E2E — create a property (real write to Postgres) and verify it lands in the list.
+# Unique title per run (Math.random suffix) keeps the flow idempotent.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+
+# Open the create form via the FAB (blue "+" button, bottom-right)
+- tapOn: "+"
+- assertVisible: "Title *"
+
+# Fill the only required field with a unique title
+- evalScript: ${output.title = 'E2E Flat ' + Math.floor(Math.random() * 1000000)}
+- tapOn: "e.g. Sunny 3BR in Ramat Aviv"
+- inputText: ${output.title}
+- hideKeyboard
+
+# Submit
+- scrollUntilVisible:
+    element:
+      text: "Create Property"
+    direction: DOWN
+- tapOn: "Create Property"
+
+# After creation the app navigates to the property detail, then we go back to the list
+- assertVisible: ${output.title}
+- back
+- assertVisible: "My Properties"
+- assertVisible: ${output.title}
