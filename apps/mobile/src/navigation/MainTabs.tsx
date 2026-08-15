@@ -18,6 +18,7 @@ import { PageDetailScreen } from '@/screens/Pages/PageDetailScreen';
 // Screens — Share
 import { ContactListScreen } from '@/screens/Share/ContactListScreen';
 import { ContactDetailScreen } from '@/screens/Share/ContactDetailScreen';
+import { ContactCreateScreen } from '@/screens/Share/ContactCreateScreen';
 import { ShareCreateScreen } from '@/screens/Share/ShareCreateScreen';
 import { ShareHistoryScreen } from '@/screens/Share/ShareHistoryScreen';
 import { TrackingDashboardScreen } from '@/screens/Tracking/TrackingDashboardScreen';
@@ -56,6 +57,7 @@ function ShareNavigator() {
     <ShareStack.Navigator>
       <ShareStack.Screen name="ContactList" component={ContactListScreen} options={{ title: 'Contacts & Shares' }} />
       <ShareStack.Screen name="ContactDetail" component={ContactDetailScreen} options={{ title: 'Contact' }} />
+      <ShareStack.Screen name="ContactCreate" component={ContactCreateScreen} options={{ title: 'New Contact' }} />
       <ShareStack.Screen name="ShareCreate" component={ShareCreateScreen} options={{ title: 'New Share' }} />
       <ShareStack.Screen name="ShareHistory" component={ShareHistoryScreen} options={{ title: 'Share History' }} />
       <ShareStack.Screen name="TrackingDashboard" component={TrackingDashboardScreen} options={{ title: 'Tracking' }} />
