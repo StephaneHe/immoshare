@@ -2,7 +2,7 @@
   "expo": {
     "name": "ImmoShare",
     "slug": "immoshare",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.immoshare.app",
-      "versionCode": 7
+      "versionCode": 8
     },
     "newArchEnabled": false,
     "extra": {

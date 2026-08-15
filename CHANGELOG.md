@@ -12,6 +12,15 @@ locations: root `package.json`, `packages/api/package.json`, `apps/mobile/packag
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-15
+
+### Added
+
+- **E2E — `contact-create.yaml` and `share-journey.yaml`** Maestro flows: creating a contact
+  through the new Add Contact screen (real DB write, verified in the list) and composing a
+  share (select the new contact + a channel). Verified PASS on the V30T. README updated —
+  completing a send still needs a property page seeded via the API (no page-creation UI).
+
 ## [0.2.0] - 2026-08-15
 
 ### Added
@@ -24,8 +33,6 @@ locations: root `package.json`, `packages/api/package.json`, `apps/mobile/packag
   **"+ Add Contact"** entry point in `ContactListScreen` (the share FAB is unchanged).
 - Jest tests for `ContactCreateScreen` (render, name validation, submit payload, empty-field
   omission, error handling).
-- **E2E — `contact-create.yaml` and `share-journey.yaml`** Maestro flows exercising the new
-  add-contact screen (and end-to-end sharing) against the real app/API/DB on the V30T.
 
 ## [0.1.4] - 2026-08-15
 
@@ -89,7 +96,8 @@ track interactions.
   React Navigation 6 (22 screens, 10 services, 7 stores, visible version footer).
 - **Infrastructure** — Docker Compose (PostgreSQL 16 + MinIO), pnpm workspaces monorepo.
 
-[Unreleased]: https://github.com/StephaneHe/immo-share/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/StephaneHe/immo-share/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/StephaneHe/immo-share/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/StephaneHe/immo-share/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/StephaneHe/immo-share/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/StephaneHe/immo-share/compare/v0.1.2...v0.1.3

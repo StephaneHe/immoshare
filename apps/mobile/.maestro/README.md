@@ -17,6 +17,8 @@ boundary (`services`, stores, navigation), so no true round-trip is exercised th
 | `property-delete.yaml` | Delete a property via the confirm dialog → gone from the list. |
 | `property-search.yaml` | Server-side search filters the list (non-matching query hides the property). |
 | `notifications-settings.yaml` | Alerts → Notification Settings loads the toggles (`Email Notifications`, …). |
+| `contact-create.yaml` | Create a contact via the **Add Contact** screen (real write to Postgres) → it appears in the contact list. |
+| `share-journey.yaml` | Create a contact → open the share screen → the contact is selectable → pick a channel + contact → ready to share (see the send limitation below). |
 
 `subflows/login.yaml` and `subflows/create-property.yaml` are reusable building blocks
 (`runFlow:`), not standalone tests.
@@ -29,14 +31,15 @@ Flows that write to the DB use a **unique title per run** (`E2E <random>` via an
 (`docker-compose down -v && docker-compose up -d` + re-run migrations + re-register the
 demo account).
 
-## Not covered (app limitation, not a test gap)
+## Partial coverage (app limitation, not a test gap)
 
-The mobile app has **no UI to create a contact** (`ContactList`/`ContactDetail` are
-read/edit only) and **no UI to create a property page** (`PageList` only lists). Since
-`ShareCreate` requires an existing page (`pageId`) **and** existing contacts, the
-"add contact", "share property" and "full journey" scenarios cannot be driven through the
-app UI alone — they would need the contact/page seeded via the API first. Flagged for the
-product/UX backlog.
+Contact creation is now a first-class UI flow (`contact-create.yaml`, since 0.2.0).
+**Completing a share (sending a link), however, still cannot be driven by the app alone**:
+`ShareCreate` requires a property `pageId`, and the mobile app has **no UI to create a
+property page** (`PageList` only lists; the only entry to `ShareCreate` — the contacts FAB —
+passes no `pageId`, so a send returns "No page selected"). `share-journey.yaml` therefore
+composes a share up to "ready to share with 1 contact"; an actual send would need a page
+seeded via the API. Flagged for the product/UX backlog.
 
 ## Prerequisites
 
