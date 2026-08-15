@@ -1,0 +1,16 @@
+# E2E — reach Notification Settings from the Alerts tab and verify it loads
+# (toggles fetched from the API).
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- tapOn: "Alerts"
+- assertVisible: "Notifications"
+# The "⚙️ Notification Settings" footer link isn't reliably matchable by text
+# (emoji-prefixed), so tap it by its on-screen position (just above the tab bar).
+- tapOn:
+    point: "50%,85%"
+- assertVisible: "Email Notifications"
+- assertVisible: "Push Notifications"
+- assertVisible: "Share Viewed"
