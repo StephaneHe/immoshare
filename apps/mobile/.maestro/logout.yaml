@@ -1,0 +1,11 @@
+# E2E — login then sign out returns to the Login screen.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- tapOn: "Profile"
+- assertVisible: "Sign Out"
+- tapOn: "Sign Out"
+- assertVisible: "Sign In"
+- assertNotVisible: "My Properties"
