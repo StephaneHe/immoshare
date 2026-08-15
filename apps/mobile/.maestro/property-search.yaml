@@ -1,0 +1,15 @@
+# E2E — create a property, confirm it shows in the list, then confirm the
+# server-side search filters it out for a non-matching query.
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+- runFlow: subflows/create-property.yaml
+- back
+- assertVisible: "My Properties"
+- assertVisible: ${output.title}
+- tapOn: "Search properties..."
+- inputText: "zzzznomatchqqq"
+- pressKey: Enter
+- assertNotVisible: ${output.title}
