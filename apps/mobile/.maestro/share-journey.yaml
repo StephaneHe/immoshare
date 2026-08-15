@@ -1,0 +1,43 @@
+# E2E — share composition journey (pure UI, as far as the mobile app allows):
+# create a contact → open the share screen → the new contact is selectable →
+# pick a channel + the contact → the app is ready to send.
+#
+# NOTE: the mobile app cannot COMPLETE a send from here — `ShareCreate` needs a
+# property `pageId`, and the app has no UI to create a property page (`PageList`
+# only lists). So the flow stops at "ready to share with 1 contact". Sending a
+# real link requires a page seeded via the API. See README "Not covered".
+appId: com.immoshare.app
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+
+# Create a fresh contact to share with
+- tapOn: "Share"
+- assertVisible: "Contacts & Shares"
+- tapOn: "+ Add Contact"
+- assertVisible: "Name *"
+- evalScript: ${output.cname = 'E2E Share ' + Math.floor(Math.random() * 1000000)}
+- tapOn: "Full name"
+- inputText: ${output.cname}
+- tapOn: "name@example.com"
+- inputText: "share@example.com"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Add Contact"
+    direction: DOWN
+- tapOn: "Add Contact"
+- assertVisible: ${output.cname}
+
+# Open the share screen (FAB) and compose a share with the new contact
+- tapOn: "+"
+- assertVisible: "Channels"
+- assertVisible: "WhatsApp"
+- scrollUntilVisible:
+    element:
+      text: ${output.cname}
+    direction: DOWN
+- tapOn: ${output.cname}
+# WhatsApp is selected by default; selecting the contact makes the app ready to send.
+- assertVisible: "Share with 1 contact"
