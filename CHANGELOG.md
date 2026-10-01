@@ -12,6 +12,20 @@ locations: root `package.json`, `packages/api/package.json`, `apps/mobile/packag
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-01
+
+### Added
+
+- `docs/API.md` — endpoint reference (moved out of the README).
+
+### Changed
+
+- **README rewritten** to a professional layout: overview, features, status, prerequisites,
+  installation, configuration (variable names/roles only), usage, architecture, tests (Jest +
+  Maestro), build, versioning, roadmap, security, contributing, license, author. Stale facts
+  fixed (Expo SDK 52 / RN 0.76, no placeholder screens, Postgres host port 5433, MinIO).
+- API version aligned with the monorepo: `packages/api` 0.1.0 → 0.2.2 (`/api/version`).
+
 ## [0.2.1] - 2026-08-15
 
 ### Added
