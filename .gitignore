@@ -38,3 +38,22 @@ pnpm-debug.log*
 .cache/
 .turbo/
 apps/mobile/.expo/
+
+# Local data / backups (personal data, not versioned)
+backup/
+minio-data/
+*.sql.gz
+*.tar.gz
+
+# Dev screenshots
+dev_*.png
+
+# Signing keystores (never versioned)
+*.keystore
+*.jks
+
+# npm lockfiles (project uses pnpm-lock.yaml)
+package-lock.json
+
+# Claude Code local settings
+.claude/settings.local.json
