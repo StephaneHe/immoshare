@@ -1,6 +1,6 @@
 #!/bin/bash
 # ImmoShare Emulator UI Test Script
-ADB="/mnt/c/Users/<user>/AppData/Local/Android/Sdk/platform-tools/adb.exe"
+ADB="${ADB:-/mnt/c/Users/${WIN_USER:?set WIN_USER to your Windows username}/AppData/Local/Android/Sdk/platform-tools/adb.exe}"
 
 tap() { $ADB shell input tap "$1" "$2" 2>/dev/null; }
 text_input() { $ADB shell input text "$1" 2>/dev/null; }
