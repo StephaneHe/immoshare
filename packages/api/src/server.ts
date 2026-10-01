@@ -5,7 +5,7 @@ import { errorHandler } from './common/middleware/errorHandler';
 import './common/types/request';
 import { MinioStorageService } from './common/storage/minio.storage';
 
-const APP_VERSION = '0.2.2';
+const APP_VERSION = '0.2.3';
 
 // Barrel imports — one per module
 import { AuthService, AuthController, authRoutes, PrismaAuthRepository } from './modules/auth';

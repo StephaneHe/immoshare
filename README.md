@@ -2,8 +2,8 @@
 
 Real estate property sharing platform for Israeli agents — create property pages, share them via WhatsApp / Email / SMS, and track how prospects interact with them.
 
-![version](https://img.shields.io/badge/version-0.2.2-blue)
-![license](https://img.shields.io/badge/license-proprietary-lightgrey)
+![version](https://img.shields.io/badge/version-0.2.3-blue)
+![license](https://img.shields.io/badge/license-MIT-green)
 ![platform](https://img.shields.io/badge/platform-Android%20%7C%20Node.js%2020-green)
 
 ## Overview
@@ -34,7 +34,7 @@ Channel delivery: email goes through Brevo (logged to console when no API key is
 
 ### Project status
 
-**Active development / pre-production** — current version **0.2.2** (see [CHANGELOG.md](CHANGELOG.md)).
+**Active development / pre-production** — current version **0.2.3** (see [CHANGELOG.md](CHANGELOG.md)).
 Backend modules M1–M9 are implemented and tested; the Android app covers all modules with real screens (23 screens). Not deployed to production; runs locally (Docker + dev server + Android device/emulator).
 
 ## Prerequisites
@@ -86,7 +86,7 @@ Mobile app: `EXPO_PUBLIC_API_URL` — API base URL reachable from the device/emu
 pnpm --filter @immo-share/api dev
 
 curl http://localhost:3000/health        # {"status":"ok","timestamp":"..."}
-curl http://localhost:3000/api/version   # {"version":"0.2.2","service":"immo-share-api"}
+curl http://localhost:3000/api/version   # {"version":"0.2.3","service":"immo-share-api"}
 
 # Mobile (Metro + Android)
 cd apps/mobile
@@ -184,7 +184,7 @@ cd apps/mobile/android
 
 ## Security
 
-- Report vulnerabilities privately to the repository owner (not in a public issue).
+- Report vulnerabilities privately through GitHub's **Security → Report a vulnerability** (private advisory), not in a public issue.
 - Secrets stay out of the repo: `.env` is git-ignored, only `.env.example` with placeholder values is tracked; a gitleaks config (`.gitleaks.toml`) is provided — run `gitleaks detect` before pushing.
 - The default `JWT_SECRET` and MinIO credentials in the templates are **for local development only** — change them on any shared or exposed host.
 - `HOST=0.0.0.0` exposes the API on every network interface so devices can reach it; only do this on a trusted network, and never expose the dev setup (or MinIO's console) to the Internet.
@@ -192,11 +192,11 @@ cd apps/mobile/android
 
 ## Contributing
 
-Private project. Work on a branch, keep the module layering, add tests with every change (`pnpm --filter @immo-share/api test` and `npx jest` must pass), and follow the release rules in [CLAUDE.md](CLAUDE.md) (version bump + CHANGELOG entry).
+Issues and pull requests are welcome. Work on a branch, keep the module layering, add tests with every change (`pnpm --filter @immo-share/api test` and `npx jest` must pass), and follow the release rules in [CLAUDE.md](CLAUDE.md) (version bump + CHANGELOG entry).
 
 ## License
 
-Proprietary — all rights reserved. No license file; no use or redistribution without the author's permission.
+[MIT](LICENSE) © 2026 Stéphane Hercot.
 
 ## Author
 

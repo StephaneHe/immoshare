@@ -12,6 +12,23 @@ locations: root `package.json`, `packages/api/package.json`, `apps/mobile/packag
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-10-02
+
+### Added
+
+- `LICENSE` — MIT (© 2026 Stéphane Hercot); repository published as open source.
+
+### Changed
+
+- README: MIT license badge and section, vulnerability reporting via GitHub private advisories,
+  contributions open.
+
+### Security
+
+- History cleaned before publication: device serial, absolute local paths in the `.bat`
+  launchers (now relative to the script, `%~dp0`) and a demo agency e-mail/address replaced
+  by neutral placeholders.
+
 ## [0.2.2] - 2026-10-01
 
 ### Added
